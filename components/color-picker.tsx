@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 interface ColorPickerProps {
   bodyColor: string
   wheelColor: string
-  selectedColor: string
   onBodyColorChange: (color: string) => void
   onWheelColorChange: (color: string) => void
 }
@@ -28,7 +27,6 @@ const colorOptions = [
 export default function ColorPicker({ bodyColor, wheelColor, onBodyColorChange, onWheelColorChange }: ColorPickerProps) {
   const [customBodyColor, setCustomBodyColor] = useState(bodyColor)
   const [customWheelColor, setCustomWheelColor] = useState(wheelColor)
-  // const [customColor, setCustomColor] = useState(selectedColor)
 
   // Handle custom color input
   const handleCustomBodyColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,16 +39,14 @@ export default function ColorPicker({ bodyColor, wheelColor, onBodyColorChange, 
     onWheelColorChange(e.target.value)
   }
 
-
-
   return (
     <div className="space-y-4">
       {/* Body Color Picker */}
       <div>
         <Label className="text-base">Body Color</Label>
-        <RadioGroup defaultValue={bodyColor} onValueChange={onBodyColorChange} className="grid grid-cols-4 gap-2 mt-2">
+        <RadioGroup value={bodyColor} onValueChange={onBodyColorChange} className="grid grid-cols-4 gap-2 mt-2">
           {colorOptions.map((color) => (
-            <ColorOption key={color.value} color={color} selectedColor={bodyColor} />
+            <ColorOption key={color.value} color={color} selectedColor={bodyColor} onChange={onBodyColorChange} />
           ))}
         </RadioGroup>
       </div>
@@ -58,9 +54,9 @@ export default function ColorPicker({ bodyColor, wheelColor, onBodyColorChange, 
       {/* Wheel Color Picker */}
       <div>
         <Label className="text-base">Wheel Color</Label>
-        <RadioGroup defaultValue={wheelColor} onValueChange={onWheelColorChange} className="grid grid-cols-4 gap-2 mt-2">
+        <RadioGroup value={wheelColor} onValueChange={onWheelColorChange} className="grid grid-cols-4 gap-2 mt-2">
           {colorOptions.map((color) => (
-            <ColorOption key={color.value} color={color} selectedColor={wheelColor} />
+            <ColorOption key={color.value} color={color} selectedColor={wheelColor} onChange={onWheelColorChange} />
           ))}
         </RadioGroup>
       </div>
@@ -78,20 +74,33 @@ export default function ColorPicker({ bodyColor, wheelColor, onBodyColorChange, 
         color={customWheelColor}
         onColorChange={handleCustomWheelColorChange}
       />
-
-
     </div>
   )
 }
-// re
 
 // Reusable color option component
-const ColorOption = ({ color, selectedColor }: { color: { value: string; label: string }; selectedColor: string }) => (
+const ColorOption = ({
+  color,
+  selectedColor,
+  onChange,
+}: {
+  color: { value: string; label: string }
+  selectedColor: string
+  onChange: (color: string) => void
+}) => (
   <div className="flex flex-col items-center space-y-1">
-    <RadioGroupItem value={color.value} id={`color-${color.value}`} className="peer sr-only" />
+    <RadioGroupItem
+      value={color.value}
+      id={`color-${color.value}`}
+      checked={selectedColor === color.value} // Ensure only relevant color changes
+      onChange={() => onChange(color.value)} // Pass only selected color to respective handler
+      className="peer sr-only"
+    />
     <Label
       htmlFor={`color-${color.value}`}
-      className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-2 hover:border-accent peer-data-[state=checked]:border-primary cursor-pointer"
+      className={`flex flex-col items-center justify-between rounded-md border-2 p-2 cursor-pointer 
+        ${selectedColor === color.value ? "border-primary" : "border-muted"} hover:border-accent`}
+      onClick={() => onChange(color.value)} // Handle selection only for respective color
     >
       <div className="w-8 h-8 rounded-full border border-slate-300" style={{ backgroundColor: color.value }} />
       <span className="mt-1 text-xs">{color.label}</span>
@@ -119,5 +128,3 @@ const CustomColorInput = ({
     </div>
   </div>
 )
-
-
