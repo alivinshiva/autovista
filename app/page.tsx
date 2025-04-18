@@ -11,7 +11,7 @@ import { useTheme } from "next-themes"
 
 function CarModel() {
   const { scene } = useGLTF("/assets/3d/duck.glb")
-  return <primitive object={scene} scale={[2, 2, 2]} position={[0, -1, 0]} rotation={[0, Math.PI / 4, 0]} />
+  return <primitive object={scene} scale={[3, 3, 3]} position={[0, -2, 0]} rotation={[0, Math.PI / 4, 0]} />
 }
 
 function FeatureCard({
@@ -86,42 +86,43 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-32 relative overflow-hidden">
+      <section className="py-20 md:py-32 relative bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">Customize Your Dream Car in 3D</h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-lg">
+            <div className="absolute inset-0 z-0 pointer-events-none">
+              <Canvas className="w-full h-full !bg-transparent" shadows camera={{ position: [0, 0, 10], fov: 45 }}>
+                <ambientLight intensity={0.5} />
+                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+                <PresentationControls
+                  global
+                  rotation={[0, 0, 0]}
+                  polar={[-Math.PI / 4, Math.PI / 4]}
+                  azimuth={[-Math.PI / 4, Math.PI / 4]}
+                  config={{ mass: 2, tension: 400 }}
+                  snap={{ mass: 4, tension: 400 }}
+                >
+                  <CarModel />
+                </PresentationControls>
+                <Environment preset="city" />
+              </Canvas>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight drop-shadow-lg text-white">Customize Your Dream Car in 3D</h1>
+            <p className="text-xl text-muted-foreground mb-8 max-w-lg drop-shadow-md">
+
               AutoVisa lets you visualize and personalize your car with our interactive 3D customization platform.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="group">
+            <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+              <Button asChild size="lg" className="group relative z-10">
                 <Link href="/customize">
                   Start Customizing
                   <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" asChild className="relative z-10">
                 <a href="#features">Learn More</a>
               </Button>
             </div>
           </motion.div>
-          <div className="h-[400px] bg-muted/30 rounded-xl overflow-hidden">
-            <Canvas shadows camera={{ position: [0, 0, 10], fov: 45 }}>
-              <ambientLight intensity={0.5} />
-              <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-              <PresentationControls
-                global
-                rotation={[0, 0, 0]}
-                polar={[-Math.PI / 4, Math.PI / 4]}
-                azimuth={[-Math.PI / 4, Math.PI / 4]}
-                config={{ mass: 2, tension: 400 }}
-                snap={{ mass: 4, tension: 400 }}
-              >
-                <CarModel />
-              </PresentationControls>
-              <Environment preset="city" />
-            </Canvas>
-          </div>
         </div>
 
         {/* Background decorations */}
