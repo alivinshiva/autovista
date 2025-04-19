@@ -289,7 +289,7 @@ export default function LandingPage() {
                 Terms
               </a>
               <a href="#" className="text-muted-foreground hover:text-foreground">
-                Contact
+                Contact Us 
               </a>
             </div>
           </div>
