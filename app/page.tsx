@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 
 function CarModel() {
-  const { scene } = useGLTF("/assets/3d/duck.glb")
+  const { scene } = useGLTF("/assets/3d/fortuner_2021.glb")
   return <primitive object={scene} scale={[3, 3, 3]} position={[0, -2, 0]} rotation={[0, Math.PI / 4, 0]} />
 }
 

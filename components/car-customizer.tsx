@@ -23,6 +23,7 @@ interface CarModel {
   interiorColor: string
   zoom: number
   modelPath: string
+  finish: "glossy" | "matte"
 }
 
 // List of available car models
@@ -33,8 +34,8 @@ const carModels = [
   { name: "Duck (Default)", path: "/assets/3d/duck.glb" },
 ]
 
-// Car component with color updates
-function Car({ bodyColor, wheelColor, modelPath }: CarModel) {
+// Car component with color and finish updates
+function Car({ bodyColor, wheelColor, modelPath, finish }: CarModel) {
   const { scene } = useGLTF(modelPath)
 
   useMemo(() => {
@@ -42,15 +43,17 @@ function Car({ bodyColor, wheelColor, modelPath }: CarModel) {
       if (node.isMesh && node.material) {
         const nodeName = node.name.toLowerCase()
 
-        // Apply new colors dynamically
         if (nodeName.includes("wheel") || nodeName.includes("tire")) {
           node.material.color.set(wheelColor)
         } else if (nodeName.includes("body") || nodeName.includes("chassis") || nodeName.includes("car")) {
           node.material.color.set(bodyColor)
+          node.material.metalness = finish === "glossy" ? 0.8 : 0.1
+          node.material.roughness = finish === "glossy" ? 0.2 : 0.7
+          node.material.needsUpdate = true
         }
       }
     })
-  }, [bodyColor, wheelColor, scene])
+  }, [bodyColor, wheelColor, finish, scene])
 
   return <primitive object={scene} scale={[2.5, 2.5, 2.5]} position={[0, 0, 0]} rotation={[0, Math.PI / 4, 0]} />
 }
@@ -64,6 +67,7 @@ export default function CarCustomizer() {
     interiorColor: "#1e293b",
     zoom: 2.5,
     modelPath: "/assets/3d/duck.glb",
+    finish: "glossy",
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -102,7 +106,7 @@ export default function CarCustomizer() {
         </Suspense>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 max-h-[700px] overflow-y-auto pr-2 scrollbar-hide">
         <Card>
           <CardContent className="pt-6">
             <h2 className="text-2xl font-bold mb-4">Customize Your Car</h2>
@@ -115,7 +119,6 @@ export default function CarCustomizer() {
                 <TabsTrigger value="view">View</TabsTrigger>
               </TabsList>
 
-              {/* ✅ Fixed Color Picker */}
               <TabsContent value="color" className="space-y-4">
                 <ColorPicker
                   bodyColor={carConfig.bodyColor}
@@ -123,6 +126,24 @@ export default function CarCustomizer() {
                   onBodyColorChange={(color) => setCarConfig((prev) => ({ ...prev, bodyColor: color }))}
                   onWheelColorChange={(color) => setCarConfig((prev) => ({ ...prev, wheelColor: color }))}
                 />
+
+                <div className="space-y-2">
+                  <Label htmlFor="finish">Finish</Label>
+                  <Select
+                    value={carConfig.finish}
+                    onValueChange={(value) =>
+                      setCarConfig((prev) => ({ ...prev, finish: value as "glossy" | "matte" }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Finish" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="glossy">Glossy</SelectItem>
+                      <SelectItem value="matte">Matte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </TabsContent>
 
               <TabsContent value="accessories" className="space-y-4">
@@ -177,6 +198,7 @@ export default function CarCustomizer() {
             <div className="text-sm space-y-1 text-muted-foreground">
               <p>Body Color: <span className="font-mono">{carConfig.bodyColor}</span></p>
               <p>Model: <span className="font-mono truncate block">{carModels.find(m => m.path === carConfig.modelPath)?.name || "Unknown"}</span></p>
+              <p>Finish: <span className="font-mono">{carConfig.finish}</span></p>
             </div>
           </CardContent>
         </Card>
