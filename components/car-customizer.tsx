@@ -12,9 +12,14 @@ import { Loader2 } from "lucide-react"
 import ColorPicker from "@/components/color-picker"
 import AccessorySelector from "@/components/accessory-selector"
 import ThemeToggle from "@/components/theme-toggle"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-// Define car configuration interface
 interface CarModel {
   bodyColor: string
   wheelColor: string
@@ -24,18 +29,17 @@ interface CarModel {
   zoom: number
   modelPath: string
   finish: "glossy" | "matte"
+  wheelScale: number
 }
 
-// List of available car models
 const carModels = [
-  { name: "Sports Car", path: "/assets/3d/sports_car.glb" },
-  { name: "Classic Car", path: "/assets/3d/classic_car.glb" },
-  { name: "Truck", path: "/assets/3d/truck.glb" },
-  { name: "Duck (Default)", path: "/assets/3d/duck.glb" },
+  { name: "Sports Car", path: "/assets/3d/2021_tata_safari.glb" },
+  { name: "Classic Car", path: "/assets/3d/2021_tata_safari.glb" },
+  { name: "2022 Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb" },
+  { name: "Fortuner", path: "/assets/3d/fortuner2.glb" },
 ]
 
-// Car component with color and finish updates
-function Car({ bodyColor, wheelColor, modelPath, finish }: CarModel) {
+function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarModel) {
   const { scene } = useGLTF(modelPath)
 
   useMemo(() => {
@@ -43,9 +47,22 @@ function Car({ bodyColor, wheelColor, modelPath, finish }: CarModel) {
       if (node.isMesh && node.material) {
         const nodeName = node.name.toLowerCase()
 
+        // Update wheel material and transform
         if (nodeName.includes("wheel") || nodeName.includes("tire")) {
           node.material.color.set(wheelColor)
-        } else if (nodeName.includes("body") || nodeName.includes("chassis") || nodeName.includes("car")) {
+          node.scale.set(wheelScale, wheelScale, wheelScale)
+
+          // Move wheels downward as they scale up to stay aligned with the ground
+          const offsetY = (wheelScale - 1) * -0.1
+          node.position.y = offsetY
+        }
+
+        // Update body color and finish
+        if (
+          nodeName.includes("body") ||
+          nodeName.includes("chassis") ||
+          (nodeName.includes("car") && !nodeName.includes("wheel"))
+        ) {
           node.material.color.set(bodyColor)
           node.material.metalness = finish === "glossy" ? 0.8 : 0.1
           node.material.roughness = finish === "glossy" ? 0.2 : 0.7
@@ -53,9 +70,16 @@ function Car({ bodyColor, wheelColor, modelPath, finish }: CarModel) {
         }
       }
     })
-  }, [bodyColor, wheelColor, finish, scene])
+  }, [bodyColor, wheelColor, finish, wheelScale, scene])
 
-  return <primitive object={scene} scale={[2.5, 2.5, 2.5]} position={[0, 0, 0]} rotation={[0, Math.PI / 4, 0]} />
+  return (
+    <primitive
+      object={scene}
+      scale={[2.5, 2.5, 2.5]}
+      position={[0, 0, 0]}
+      rotation={[0, Math.PI / 4, 0]}
+    />
+  )
 }
 
 export default function CarCustomizer() {
@@ -68,6 +92,7 @@ export default function CarCustomizer() {
     zoom: 2.5,
     modelPath: "/assets/3d/duck.glb",
     finish: "glossy",
+    wheelScale: 1,
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -153,6 +178,21 @@ export default function CarCustomizer() {
                   selectedInteriorColor={carConfig.interiorColor}
                   onChange={(type, value) => setCarConfig((prev) => ({ ...prev, [type]: value }))}
                 />
+
+                <div className="space-y-2">
+                  <Label htmlFor="wheel-scale">Wheel Size</Label>
+                  <div className="flex items-center gap-3">
+                    <Slider
+                      id="wheel-scale"
+                      min={0.5}
+                      max={1.2}
+                      step={0.1}
+                      value={[carConfig.wheelScale || 1]}
+                      onValueChange={(value) => setCarConfig((prev) => ({ ...prev, wheelScale: value[0] }))}
+                    />
+                    <span className="text-sm font-mono w-10">{carConfig.wheelScale.toFixed(1)}x</span>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="model" className="space-y-4">
@@ -174,7 +214,14 @@ export default function CarCustomizer() {
               <TabsContent value="view" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="zoom">Zoom Level</Label>
-                  <Slider id="zoom" min={1} max={5} step={0.1} value={[carConfig.zoom]} onValueChange={handleZoomChange} />
+                  <Slider
+                    id="zoom"
+                    min={1}
+                    max={5}
+                    step={0.1}
+                    value={[carConfig.zoom]}
+                    onValueChange={handleZoomChange}
+                  />
                 </div>
               </TabsContent>
             </Tabs>
@@ -196,9 +243,21 @@ export default function CarCustomizer() {
           <CardContent className="pt-6">
             <h3 className="text-lg font-semibold mb-2">Current Configuration</h3>
             <div className="text-sm space-y-1 text-muted-foreground">
-              <p>Body Color: <span className="font-mono">{carConfig.bodyColor}</span></p>
-              <p>Model: <span className="font-mono truncate block">{carModels.find(m => m.path === carConfig.modelPath)?.name || "Unknown"}</span></p>
-              <p>Finish: <span className="font-mono">{carConfig.finish}</span></p>
+              <p>
+                Body Color: <span className="font-mono">{carConfig.bodyColor}</span>
+              </p>
+              <p>
+                Model:{" "}
+                <span className="font-mono truncate block">
+                  {carModels.find((m) => m.path === carConfig.modelPath)?.name || "Unknown"}
+                </span>
+              </p>
+              <p>
+                Finish: <span className="font-mono">{carConfig.finish}</span>
+              </p>
+              <p>
+                Wheel Size: <span className="font-mono">{carConfig.wheelScale.toFixed(1)}x</span>
+              </p>
             </div>
           </CardContent>
         </Card>

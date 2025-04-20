@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 
 function CarModel() {
-  const { scene } = useGLTF("/assets/3d/fortuner_2021.glb")
+  const { scene } = useGLTF("/assets/3d/fortuner.glb")
   return <primitive object={scene} scale={[3, 3, 3]} position={[0, -2, 0]} rotation={[0, Math.PI / 4, 0]} />
 }
 
@@ -55,7 +55,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b">
+      <header className="border-b z-50 relative">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Car className="h-6 w-6 text-primary" />
@@ -69,9 +69,9 @@ export default function LandingPage() {
               <a href="#upload" className="text-foreground/80 hover:text-foreground">
                 Upload Model
               </a>
-              <Link href="/customize" className="text-foreground/80 hover:text-foreground">
+              <a href="/customize" className="text-foreground/80 hover:text-foreground">
                 Customize
-              </Link>
+              </a>
             </nav>
             <Button
               variant="ghost"
@@ -289,7 +289,7 @@ export default function LandingPage() {
                 Terms
               </a>
               <a href="#" className="text-muted-foreground hover:text-foreground">
-                Contact Us 
+                Contact Us
               </a>
             </div>
           </div>

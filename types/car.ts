@@ -5,4 +5,5 @@ export interface CarType {
   headlights: string
   interiorColor: string
   zoom: number
+  wheelScale: number
 }
