@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useUser } from "@clerk/nextjs"
 
 interface CarModel {
   bodyColor: string
@@ -27,19 +28,20 @@ interface CarModel {
   headlights: string
   interiorColor: string
   zoom: number
+  modelName: string
   modelPath: string
   finish: "glossy" | "matte"
   wheelScale: number
 }
 
 const carModels = [
-  { name: "Sports Car", path: "/assets/3d/2021_tata_safari.glb" },
-  { name: "Classic Car", path: "/assets/3d/2021_tata_safari.glb" },
-  { name: "2022 Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb" },
+  { name: "Hyundai Creta Car", path: "/assets/3d/2023_hyundai_creta.glb" },
+  { name: "Tata Safari", path: "/assets/3d/2021_tata_safari.glb" },
+  { name: "Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb" },
   { name: "Toyota Supra", path: "/assets/3d/toyota_gr_supra.glb" },
   { name: "Fortuner", path: "/assets/3d/fortuner2.glb" },
-  // { name: "Trial", path: "/assets/3d/xuv_3xo.glb" },
-  
+  { name: "Audi", path: "/assets/3d/audi.glb" },
+
 ]
 
 function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarModel) {
@@ -86,6 +88,7 @@ function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarMo
 }
 
 export default function CarCustomizer() {
+  const { user } = useUser()
   const [carConfig, setCarConfig] = useState<CarModel>({
     bodyColor: "#3b82f6",
     wheelColor: "#1e293b",
@@ -93,28 +96,54 @@ export default function CarCustomizer() {
     headlights: "standard",
     interiorColor: "#1e293b",
     zoom: 2.5,
-    modelPath: "/assets/3d/duck.glb",
+    modelName: "Audi",
+    modelPath: "/assets/3d/audi.glb",
     finish: "glossy",
     wheelScale: 1,
   })
 
   const [isSaving, setIsSaving] = useState(false)
 
+
+
   const handleZoomChange = (value: number[]) => {
     setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
   }
 
+  // const handleModelChange = (newModelPath: string) => {
+  //   setCarConfig((prev) => ({ ...prev, modelPath: newModelPath }))
+  // }
   const handleModelChange = (newModelPath: string) => {
-    setCarConfig((prev) => ({ ...prev, modelPath: newModelPath }))
+    const selectedModel = carModels.find((m) => m.path === newModelPath)
+    setCarConfig((prev) => ({
+      ...prev,
+      modelPath: newModelPath,
+      modelName: selectedModel?.name || "Unknown",
+    }))
   }
 
-  const saveConfiguration = () => {
+
+  const saveConfiguration = async () => {
     setIsSaving(true)
-    setTimeout(() => {
-      localStorage.setItem("savedCarConfig", JSON.stringify(carConfig))
+    try {
+      const res = await fetch("/api/save-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(carConfig),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to save config")
+      }
+
+      alert("Configuration saved to database successfully!")
+    } catch (error: any) {
+      alert("Error saving configuration: " + error.message)
+    } finally {
       setIsSaving(false)
-      alert("Configuration saved successfully!")
-    }, 1500)
+    }
   }
   const selectedModelName = useMemo(() => {
     return carModels.find((m) => m.path === carConfig.modelPath)?.name || "Unknown"

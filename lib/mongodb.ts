@@ -1,22 +1,23 @@
-import mongoose from "mongoose";
+// lib/mongodb.ts
+import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || "";
+const MONGODB_URI = "mongodb+srv://alivinshiva:cMyi1wReYAcLvsd3@cluster0.kgqjidj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable.");
+  throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-export async function connectToDatabase() {
-  if (mongoose.connection.readyState >= 1) {
-    return;
-  }
+let cached = (global as any).mongoose || { conn: null, promise: null };
 
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: "car_customizer", // Database name
-    });
-    console.log("Connected to MongoDB");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
+export async function connectToDB() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      dbName: 'autovisa',
+      bufferCommands: false,
+    }).then((mongoose) => mongoose);
   }
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
