@@ -36,7 +36,10 @@ const carModels = [
   { name: "Sports Car", path: "/assets/3d/2021_tata_safari.glb" },
   { name: "Classic Car", path: "/assets/3d/2021_tata_safari.glb" },
   { name: "2022 Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb" },
+  { name: "Toyota Supra", path: "/assets/3d/toyota_gr_supra.glb" },
   { name: "Fortuner", path: "/assets/3d/fortuner2.glb" },
+  // { name: "Trial", path: "/assets/3d/xuv_3xo.glb" },
+  
 ]
 
 function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarModel) {
@@ -113,7 +116,9 @@ export default function CarCustomizer() {
       alert("Configuration saved successfully!")
     }, 1500)
   }
-
+  const selectedModelName = useMemo(() => {
+    return carModels.find((m) => m.path === carConfig.modelPath)?.name || "Unknown"
+  }, [carConfig.modelPath])
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       <div className="lg:col-span-2 bg-muted/30 rounded-lg overflow-hidden shadow-sm h-[500px] lg:h-[700px] relative">
@@ -243,14 +248,25 @@ export default function CarCustomizer() {
           <CardContent className="pt-6">
             <h3 className="text-lg font-semibold mb-2">Current Configuration</h3>
             <div className="text-sm space-y-1 text-muted-foreground">
-              <p>
-                Body Color: <span className="font-mono">{carConfig.bodyColor}</span>
+              <p className="flex items-center gap-2">
+                Body Color:
+                <span
+                  className="inline-block w-5 h-5 rounded"
+                  style={{ backgroundColor: carConfig.bodyColor }}
+                ></span>
+                <span className="font-mono">{carConfig.wheelColor}</span>
               </p>
+              <p className="flex items-center gap-2">
+                Wheel Color:
+                <span
+                  className="inline-block w-5 h-5 rounded"
+                  style={{ backgroundColor: carConfig.wheelColor }}
+                ></span>
+                <span className="font-mono">{carConfig.wheelColor}</span>
+              </p>
+
               <p>
-                Model:{" "}
-                <span className="font-mono truncate block">
-                  {carModels.find((m) => m.path === carConfig.modelPath)?.name || "Unknown"}
-                </span>
+                Model: <span className="font-mono">{selectedModelName}</span>
               </p>
               <p>
                 Finish: <span className="font-mono">{carConfig.finish}</span>
