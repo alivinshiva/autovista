@@ -33,3 +33,5 @@ next-env.d.ts
 *.stl
 *.exr
 *.hdr
+# clerk configuration (can include secrets)
+/.clerk/
