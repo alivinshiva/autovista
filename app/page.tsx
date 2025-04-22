@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Canvas } from "@react-three/fiber"
 import { Environment, PresentationControls, useGLTF } from "@react-three/drei"
+import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 import {
   ChevronRight,
   Car,
@@ -25,6 +26,63 @@ import {
   UserButton,
   useUser,
 } from "@clerk/nextjs"
+import { Gallery } from "@/components/gallery"
+
+const carData = [
+  {
+    title: "Audi Red",
+    src: "/assets/image/amjith-s-8G4hNKdu60M-unsplash.jpg",
+
+    description: "Customized Audi in red color",
+    // link: "/car/audi",
+  },
+  {
+    title: "BMW Matte",
+    src: "/assets/image/anastase-maragos-Lrfuy93_hAc-unsplash.jpg",
+    description: "Matte black BMW",
+    link: "/car/bmw",
+  },
+  {
+    title: "Lambo Green",
+    src: "/assets/image/karsten-winegeart-afDsNrec8gI-unsplash.jpg",
+    description: "Neon green Lamborghini",
+    link: "/car/lambo",
+  },
+  {
+    title: "Tesla",
+    src: "/assets/image/tesla-fans-schweiz-7_OQMgoGzDw-unsplash.jpg",
+  },
+  {
+    title: "Nissan GT-R",
+    src: "/assets/image/stevosdisposable-6DnSGv4VZlo-unsplash.jpg",
+  },
+  {
+    title: "Nissan GT-R",
+    src: "/assets/image/live-car-p635p3cj7x0qkf44.jpg",
+  },
+];
+
+
+
+const words = [
+  {
+    text: "Customize",
+  },
+  {
+    text: "Your",
+  },
+  {
+    text: "Car",
+  },
+  {
+    text: "With",
+  },
+  {
+    text: "Fun",
+    className: "text-blue-500 dark:text-blue-500",
+  },
+];
+
 
 
 function CarModel() {
@@ -92,7 +150,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Car className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">AutoVisa</span>
+            <span className="text-xl font-bold">AutoVista</span>
           </div>
           <div className="flex items-center space-x-4">
             <nav className="hidden md:flex space-x-6">
@@ -141,7 +199,7 @@ export default function LandingPage() {
               Customize Your Dream Car in 3D
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-lg drop-shadow-md">
-              AutoVisa lets you visualize and personalize your car with our interactive 3D customization platform.
+              AutoVista lets you visualize and personalize your car with our interactive 3D customization platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button size="lg" className="group relative z-10" onClick={handleCustomizeClick}>
@@ -180,14 +238,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Upload Model Section */}
-      <section id="upload" className="py-20">
+      {/* Upload Model Section ,,,, to be replaced by gallery section */}
+      {/* <section id="upload" className="py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Upload Your Own 3D Models</h2>
               <p className="text-xl text-muted-foreground">
-                Have a 3D model you created? Upload it to AutoVisa and start customizing right away.
+                Have a 3D model you created? Upload it to AutoVista and start customizing right away.
               </p>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} viewport={{ once: true }} className="bg-card border rounded-xl p-8 shadow-sm">
@@ -203,10 +261,25 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </div>
+      </section> */}
+      <section id="upload" className="w-full px-4 py-8">
+        <div className="flex flex-col items-center justify-center   ">
+          <p className="text-neutral-600 dark:text-neutral-200 text-xs sm:text-base  ">
+            The road to freedom starts from here
+          </p>
+          <TypewriterEffectSmooth words={words} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {carData.map((car, index) => (
+            <Gallery key={index} car={car} />
+          ))}
+          {/* <Gallery data={carImages} /> */}
+          {/* <Gallery  data={carImages}/> */}
+        </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-20 bg-slate-400 text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Customize Your Dream Car?
@@ -229,7 +302,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Car className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold">AutoVisa</span>
+              <span className="text-lg font-bold">AutoVista</span>
             </div>
             <div className="flex space-x-6">
               <a href="#" className="text-muted-foreground hover:text-foreground">Privacy</a>
@@ -237,7 +310,7 @@ export default function LandingPage() {
               <a href="#" className="text-muted-foreground hover:text-foreground">Contact Us</a>
             </div>
           </div>
-          <div className="mt-8 text-center text-sm text-muted-foreground">© 2025 AutoVisa. All rights reserved.</div>
+          <div className="mt-8 text-center text-sm text-muted-foreground">© 2025 AutoVista. All rights reserved.</div>
         </div>
       </footer>
     </div>

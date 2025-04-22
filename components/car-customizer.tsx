@@ -28,15 +28,15 @@ interface CarModel {
   headlights: string
   interiorColor: string
   zoom: number
-  modelName: string
   modelPath: string
+  modelName: string
   finish: "glossy" | "matte"
   wheelScale: number
 }
 
 const carModels = [
   { name: "Hyundai Creta Car", path: "/assets/3d/2023_hyundai_creta.glb" },
-  { name: "Tata Safari", path: "/assets/3d/2021_tata_safari.glb" },
+  { name: "Tata safari", path: "/assets/3d/2021_tata_safari.glb" },
   { name: "Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb" },
   { name: "Toyota Supra", path: "/assets/3d/toyota_gr_supra.glb" },
   { name: "Fortuner", path: "/assets/3d/fortuner2.glb" },
@@ -96,8 +96,8 @@ export default function CarCustomizer() {
     headlights: "standard",
     interiorColor: "#1e293b",
     zoom: 2.5,
-    modelName: "Audi",
     modelPath: "/assets/3d/audi.glb",
+    modelName: "Audi",
     finish: "glossy",
     wheelScale: 1,
   })
@@ -126,17 +126,17 @@ export default function CarCustomizer() {
   const saveConfiguration = async () => {
     setIsSaving(true)
     try {
+      const payload = {
+        ...carConfig,
+        userEmail: user?.emailAddresses[0].emailAddress,
+        userName: user?.fullName,
+      }
+
       const res = await fetch("/api/save-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(carConfig),
+        body: JSON.stringify(payload),
       })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to save config")
-      }
 
       alert("Configuration saved to database successfully!")
     } catch (error: any) {

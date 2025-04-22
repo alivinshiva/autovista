@@ -5,7 +5,7 @@ export default function CustomizePage() {
     <main className="min-h-screen flex flex-col">
       <header className="border-b p-4">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">AutoVisa Customizer</h1>
+          <h1 className="text-2xl font-bold">AutoVista Customizer</h1>
           <nav>
             <ul className="flex space-x-4">
               <li>
@@ -14,7 +14,7 @@ export default function CustomizePage() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary">
+                <a href="/gallery" className="hover:text-primary">
                   Gallery
                 </a>
               </li>
@@ -34,7 +34,7 @@ export default function CustomizePage() {
 
       <footer className="border-t p-4">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-          <p>© 2025 AutoVisa. All rights reserved.</p>
+          <p>© 2025 AutoVista. All rights reserved.</p>
         </div>
       </footer>
     </main>

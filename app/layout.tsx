@@ -15,9 +15,9 @@ import {
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AutoVisa - 3D Car Customization Platform",
-  description: "Customize your dream car in 3D with AutoVisa",
-  generator: 'v0.dev'
+  title: "AutoVista - 3D Car Customization Platform",
+  description: "Customize your dream car in 3D with AutoVista",
+
 }
 
 export default function RootLayout({
