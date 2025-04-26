@@ -7,6 +7,8 @@ import { motion } from "framer-motion"
 import { Canvas } from "@react-three/fiber"
 import { Environment, PresentationControls, useGLTF } from "@react-three/drei"
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
+import { HoverEffect } from "@/components/ui/card-hover-effect";
+
 import {
   ChevronRight,
   Car,
@@ -15,7 +17,17 @@ import {
   Upload,
   Moon,
   Sun,
-} from "lucide-react"
+} from "lucide-react";
+
+import {
+  IconBrandGithub,
+  IconBrandX,
+  IconExchange,
+  IconHome,
+  IconNewSection,
+  IconTerminal2,
+} from "@tabler/icons-react";
+
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import {
@@ -30,38 +42,72 @@ import { Gallery } from "@/components/gallery"
 
 const carData = [
   {
-    title: "Audi Red",
+    title: "Toyota Fortuner",
     src: "/assets/image/amjith-s-8G4hNKdu60M-unsplash.jpg",
 
     description: "Customized Audi in red color",
     // link: "/car/audi",
   },
   {
-    title: "BMW Matte",
+    title: "BMW M4",
     src: "/assets/image/anastase-maragos-Lrfuy93_hAc-unsplash.jpg",
     description: "Matte black BMW",
     link: "/car/bmw",
   },
   {
-    title: "Lambo Green",
+    title: "Toyota Supra",
     src: "/assets/image/karsten-winegeart-afDsNrec8gI-unsplash.jpg",
     description: "Neon green Lamborghini",
     link: "/car/lambo",
   },
   {
-    title: "Tesla",
+    title: "Hyundai Creta",
     src: "/assets/image/tesla-fans-schweiz-7_OQMgoGzDw-unsplash.jpg",
   },
   {
-    title: "Nissan GT-R",
+    title: "Audi GT-R",
     src: "/assets/image/stevosdisposable-6DnSGv4VZlo-unsplash.jpg",
   },
   {
-    title: "Nissan GT-R",
+    title: "Maruti Suzuki Beleno",
     src: "/assets/image/live-car-p635p3cj7x0qkf44.jpg",
   },
 ];
 
+
+const projects = [
+  {
+    title: "Interactive 3D Viewer",
+    description:
+      "Explore every angle of your car with our interactive 3D model viewer powered by Three.js.",
+
+  },
+  {
+    title: "Color Customization",
+    description: "Choose from a wide range of colors or create your own custom shade for the perfect look.",
+
+  },
+  {
+    title: "Accessory Customization"
+    , description: "Personalize wheels, headlights, and interior colors to match your style preferences.",
+
+  },
+  {
+    title: "Upload Your Models",
+    description: "Import your own 3D models created in Blender or other 3D software for customization.",
+
+  },
+  {
+    title: "Light & Dark Mode",
+    description: "Enjoy a comfortable viewing experience with support for both light and dark themes.",
+
+  },
+  {
+    title: "Save & Share",
+    description: "Save your customizations and share them with friends or download for future reference.",
+
+  },
+];
 
 
 const words = [
@@ -82,6 +128,9 @@ const words = [
     className: "text-blue-500 dark:text-blue-500",
   },
 ];
+
+
+
 
 
 
@@ -178,6 +227,7 @@ export default function LandingPage() {
               <UserButton />
             </SignedIn>
           </div>
+
         </div>
       </header>
 
@@ -228,6 +278,7 @@ export default function LandingPage() {
             </motion.p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
             <FeatureCard icon={Car} title="Interactive 3D Viewer" description="Explore every angle of your car with our interactive 3D model viewer powered by Three.js." delay={0.2} />
             <FeatureCard icon={Palette} title="Color Customization" description="Choose from a wide range of colors or create your own custom shade for the perfect look." delay={0.3} />
             <FeatureCard icon={Cog} title="Accessory Customization" description="Personalize wheels, headlights, and interior colors to match your style preferences." delay={0.4} />
@@ -235,6 +286,13 @@ export default function LandingPage() {
             <FeatureCard icon={Sun} title="Light & Dark Mode" description="Enjoy a comfortable viewing experience with support for both light and dark themes." delay={0.6} />
             <FeatureCard icon={ChevronRight} title="Save & Share" description="Save your customizations and share them with friends or download for future reference." delay={0.7} />
           </div>
+
+
+          {/* hover Effect iin features section */}
+          {/* <div className="max-w-5xl mx-auto px-8  lg:grid-cols-3 gap-8">
+            <HoverEffect items={projects} />
+          </div> */}
+
         </div>
       </section>
 
