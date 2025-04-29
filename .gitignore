@@ -27,8 +27,8 @@ yarn-error.log*
 next-env.d.ts
 
 # heavy files
-*.glb
-*.gltf
+# *.glb # Allow car model files to be committed
+# *.gltf
 *.fbx
 *.stl
 *.exr
