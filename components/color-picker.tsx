@@ -64,7 +64,7 @@ export default function ColorPicker({
 
       {/* Wheel Color */}
       <div>
-        <Label className="text-base">Wheel Color</Label>
+        <Label className="text-base">Accent Color</Label>
         <RadioGroup value={wheelColor} onValueChange={onWheelColorChange} className="grid grid-cols-4 gap-2 mt-2">
           {colorOptions.map((color) => (
             <ColorOption key={color.value} color={color} selectedColor={wheelColor} onChange={onWheelColorChange} />
