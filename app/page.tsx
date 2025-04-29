@@ -42,35 +42,41 @@ import { Gallery } from "@/components/gallery"
 
 const carData = [
   {
-    title: "Toyota Fortuner",
+    title: "Toyota Fortuner 2021",
     src: "/assets/image/amjith-s-8G4hNKdu60M-unsplash.jpg",
 
-    description: "Customized Audi in red color",
+    description: "Customized Toyota Fortuner",
     // link: "/car/audi",
   },
   {
-    title: "BMW M4",
+    title: "BMW 218i Gran Coupe 2021",
     src: "/assets/image/anastase-maragos-Lrfuy93_hAc-unsplash.jpg",
-    description: "Matte black BMW",
-    link: "/car/bmw",
+    description: "Customized BMW 218i Gran Coupe",
   },
   {
-    title: "Toyota Supra",
+    title: "Chevrolet Groove Premier 2023",
     src: "/assets/image/karsten-winegeart-afDsNrec8gI-unsplash.jpg",
-    description: "Neon green Lamborghini",
-    link: "/car/lambo",
+    description: "Customized Chevrolet Groove Premier",
   },
   {
-    title: "Hyundai Creta",
+    title: "Hyundai Creta 2023",
     src: "/assets/image/tesla-fans-schweiz-7_OQMgoGzDw-unsplash.jpg",
+    description: "Customized Hyundai Creta",
   },
   {
-    title: "Audi GT-R",
+    title: "Audi A8 Custom 2018",
     src: "/assets/image/stevosdisposable-6DnSGv4VZlo-unsplash.jpg",
+    description: "Customized Audi A8",
   },
   {
-    title: "Maruti Suzuki Beleno",
+    title: "Maruti Suzuki Swift Dzire 2022",
     src: "/assets/image/live-car-p635p3cj7x0qkf44.jpg",
+    description: "Customized Maruti Suzuki Swift Dzire",
+  },
+  {
+    title: "Mahindra Scorpio-N 2022",
+    src: "/assets/image/garage.jpg",
+    description: "Customized Mahindra Scorpio",
   },
 ];
 
@@ -135,7 +141,7 @@ const words = [
 
 
 function CarModel() {
-  const { scene } = useGLTF("/assets/3d/fortuner2.glb")
+  const { scene } = useGLTF("/assets/3d/toyota_fortuner_2021.glb")
   return (
     <primitive
       object={scene}

@@ -35,12 +35,24 @@ interface CarModel {
 }
 
 const carModels = [
-  { name: "Hyundai Creta Car", path: "/assets/3d/2023_hyundai_creta.glb" },
-  { name: "Tata safari", path: "/assets/3d/2021_tata_safari.glb" },
-  { name: "Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb" },
-  { name: "Toyota Supra", path: "/assets/3d/toyota_gr_supra.glb" },
-  { name: "Fortuner", path: "/assets/3d/fortuner2.glb" },
-  { name: "Audi", path: "/assets/3d/audi.glb" },
+  { name: "bmw_218i_gran_coupe_2021", path: "/assets/3d/bmw_218i_gran_coupe_2021.glb" },
+  { name: "suzuki_ciaz_2021", path: "/assets/3d/suzuki_ciaz_2021.glb" },
+  { name: "tata_safari_2021", path: "/assets/3d/tata_safari_2021.glb" },
+  { name: "mahindra_scorpio_n_2022", path: "/assets/3d/mahindra_scorpio_n_2022.glb" },
+  {
+    name: "maruti_suzuki_swift_dzire_2022",
+    path: "/assets/3d/maruti_suzuki_swift_dzire_2022.glb",
+  },
+  { name: "chevrolet_groove_premier_2023", path: "/assets/3d/chevrolet_groove_premier_2023.glb" },
+  { name: "hyundai_creta_2023", path: "/assets/3d/hyundai_creta_2023.glb" },
+  { name: "audi_a8_custom_2018", path: "/assets/3d/audi_a8_custom_2018.glb" },
+  { name: "honda_city_rs", path: "/assets/3d/honda_city_rs.glb" },
+  { name: "tata_nano", path: "/assets/3d/tata_nano.glb" },
+  { name: "tata_punch", path: "/assets/3d/tata_punch.glb" },
+  { name: "tata_tiago", path: "/assets/3d/tata_tiago.glb" },
+  { name: "thar_4x4", path: "/assets/3d/thar_4x4.glb" },
+  { name: "toyota_fortuner_2021", path: "/assets/3d/toyota_fortuner_2021.glb" },
+
 
 ]
 
@@ -96,8 +108,8 @@ export default function CarCustomizer() {
     headlights: "standard",
     interiorColor: "#1e293b",
     zoom: 2.5,
-    modelPath: "/assets/3d/audi.glb",
-    modelName: "Audi",
+    modelPath: "/assets/3d/audi_a8_custom_2018.glb",
+    modelName: "audi_a8_custom_2018",
     finish: "glossy",
     wheelScale: 1,
   })
