@@ -199,7 +199,7 @@ export default function LandingPage() {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Header */}
       <header className="border-b z-50 relative">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -238,7 +238,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="py-20 md:py-32 relative bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black">
+      <section className="py-20 md:py-32 relative bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black ">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <div className="absolute inset-0 z-0 pointer-events-none">
@@ -273,7 +273,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-muted/30">
+      <section id="features" className="py-20 bg-muted/30 ">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-4">
