@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, Suspense } from "react"
+import React, { useState, useMemo, Suspense } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Environment, useGLTF, Stage } from "@react-three/drei"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+interface GalleryItem {
+  id: number;
+  userId: string;
+  modelPath: string;
+  bodyColor: string;
+  wheelColor: string;
+  accessories: any[];
+  shared: number;
+  src: string;
+  alt: string;
+  carName: string;
+}
 import { useUser } from "@clerk/nextjs"
 import { toast } from "@/components/ui/use-toast"
 
@@ -100,7 +112,7 @@ function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarMo
   )
 }
 
-export default function CarCustomizer() {
+export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
   const { user } = useUser()
   const [carConfig, setCarConfig] = useState<CarModel>({
     bodyColor: "#3b82f6",
@@ -117,8 +129,6 @@ export default function CarCustomizer() {
 
   const [isSaving, setIsSaving] = useState(false)
 
-
-
   const handleZoomChange = (value: number[]) => {
     setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
   }
@@ -127,7 +137,7 @@ export default function CarCustomizer() {
   //   setCarConfig((prev) => ({ ...prev, modelPath: newModelPath }))
   // }
   const handleModelChange = (newModelPath: string) => {
-    const selectedModel = carModels.find((m) => m.path === newModelPath)
+    const selectedModel = cars.find((m) => m.modelPath === newModelPath)
     setCarConfig((prev) => ({
       ...prev,
       modelPath: newModelPath,
@@ -159,32 +169,35 @@ export default function CarCustomizer() {
     }
   }
 
-    const saveCar = async () => {
-        setIsSaving(true);
-        try {
-            const payload = {
-                userId: user?.id,
-                modelPath: carConfig.modelPath,
-                bodyColor: carConfig.bodyColor,
-                wheelColor: carConfig.wheelColor,
-                accessories: [],
-                shared: true,
-            };
+  const saveCar = async () => {
+    setIsSaving(true)
+    try {
+      const payload = {
+        userId: user?.id,
+        modelPath: carConfig.modelPath,
+        bodyColor: carConfig.bodyColor,
+        wheelColor: carConfig.wheelColor,
+        accessories: [],
+        shared: true,
+      }
 
-            await fetch("/api/saveCar", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            toast({ title: "Car saved to gallery!" });
-        } catch (error: any) {
-            toast({ title: "Error saving car: " + error.message, variant: "destructive" });
-        } finally {
-            setIsSaving(false);
-        }
-    };
+      await fetch("/api/saveCar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      toast({ title: "Car saved to gallery!" })
+    } catch (error: any) {
+      toast({ title: "Error saving car: " + error.message, variant: "destructive" })
+    } finally {
+      setIsSaving(false)
+    }
+  }
   const selectedModelName = useMemo(() => {
-    return carModels.find((m) => m.path === carConfig.modelPath)?.name || "Unknown"
+    return (
+      cars.find((m) => m.modelPath === carConfig.modelPath)?.alt ||
+      "Unknown"
+    )
   }, [carConfig.modelPath])
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
@@ -274,9 +287,9 @@ export default function CarCustomizer() {
                     <SelectValue placeholder="Select a Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {carModels.map((model) => (
-                      <SelectItem key={model.path} value={model.path}>
-                        {model.name}
+                    {cars.map((model) => (
+                        <SelectItem key={model.carName} value={model.modelPath}>
+                        {model.carName}
                       </SelectItem>
                     ))}
                   </SelectContent>

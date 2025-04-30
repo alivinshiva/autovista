@@ -1,6 +1,16 @@
-import CarCustomizer from "@/components/car-customizer"
+import CarCustomizer from "@/components/car-customizer";
+import db from "@/lib/db";
 
-export default function CustomizePage() {
+async function getCarData() {
+  const cars: any[] = db.prepare("SELECT * FROM Cars").all();
+  return cars.map((car) => ({
+    ...car,
+  }));
+}
+
+export default async function CustomizePage() {
+  const cars = await getCarData();
+
   return (
     <main className="min-h-screen flex flex-col">
       <header className="border-b p-4">
@@ -29,7 +39,7 @@ export default function CustomizePage() {
       </header>
 
       <div className="flex-grow container mx-auto p-4">
-        <CarCustomizer />
+        <CarCustomizer cars={cars} />
       </div>
 
       <footer className="border-t p-4">
