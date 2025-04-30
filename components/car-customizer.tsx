@@ -95,8 +95,8 @@ function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarMo
 export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
   const { user } = useUser()
   const [carConfig, setCarConfig] = useState<CarModel>({
-    bodyColor: "#3b82f6",
-    wheelColor: "#1e293b",
+    bodyColor: "",
+    wheelColor: "",
     wheels: "standard",
     headlights: "standard",
     interiorColor: "#1e293b",
@@ -117,12 +117,15 @@ export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
   //   setCarConfig((prev) => ({ ...prev, modelPath: newModelPath }))
   // }
   const handleModelChange = (newModelPath: string) => {
-    const selectedModel = cars.find((m) => m.modelPath === newModelPath)
-    setCarConfig((prev) => ({
-      ...prev,
-      modelPath: newModelPath,
-      modelName: selectedModel?.name || "Unknown",
-    }))
+        const selectedModel = cars.find((m) => m.modelPath === newModelPath);
+        setCarConfig((prev) => ({
+            ...prev,
+            modelPath: newModelPath,
+            modelName: selectedModel?.name || "Unknown",
+            bodyColor: "", // Reset body color
+            wheelColor: "", // Reset wheel color
+        }));
+
   }
 
 
@@ -179,6 +182,7 @@ export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
       "Unknown"
     )
   }, [carConfig.modelPath])
+  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       <div className="lg:col-span-2 bg-muted/30 rounded-lg overflow-hidden shadow-sm h-[500px] lg:h-[700px] relative">
