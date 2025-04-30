@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useUser } from "@clerk/nextjs"
+import { toast } from "@/components/ui/use-toast"
 
 interface CarModel {
   bodyColor: string
@@ -157,6 +158,31 @@ export default function CarCustomizer() {
       setIsSaving(false)
     }
   }
+
+    const saveCar = async () => {
+        setIsSaving(true);
+        try {
+            const payload = {
+                userId: user?.id,
+                modelPath: carConfig.modelPath,
+                bodyColor: carConfig.bodyColor,
+                wheelColor: carConfig.wheelColor,
+                accessories: [],
+                shared: true,
+            };
+
+            await fetch("/api/saveCar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            toast({ title: "Car saved to gallery!" });
+        } catch (error: any) {
+            toast({ title: "Error saving car: " + error.message, variant: "destructive" });
+        } finally {
+            setIsSaving(false);
+        }
+    };
   const selectedModelName = useMemo(() => {
     return carModels.find((m) => m.path === carConfig.modelPath)?.name || "Unknown"
   }, [carConfig.modelPath])
@@ -284,6 +310,8 @@ export default function CarCustomizer() {
             "Save Configuration"
           )}
         </Button>
+
+        <Button onClick={saveCar} className="w-full" size="lg">Save Car</Button>
 
         <Card>
           <CardContent className="pt-6">

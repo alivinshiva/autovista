@@ -1,71 +1,140 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, Suspense, useState, useRef } from "react";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { OrbitControls, Environment, Stage } from "@react-three/drei";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
+import * as THREE from 'three';
 
 interface GalleryItem {
-  id: string;
-  title: string;
-  description: string;
+  id: number;
+  userId: string;
+  modelPath: string;
+  bodyColor: string;
+  wheelColor: string;
+  accessories: any[];
+  shared: number;
   src: string;
-  alt?: string;
-  tryHref?: string;
 }
 
-interface HoverEffectProps {
-  items: GalleryItem[];
+
+function Car({ scene }: { scene: THREE.Object3D }) {
+  useEffect(() => {
+    return () => {
+      scene.traverse((node: any) => {
+        if (node.isMesh) {
+          node.geometry.dispose();
+          if (node.material.map) node.material.map.dispose();
+          if (node.material.lightMap) node.material.lightMap.dispose();
+          if (node.material.bumpMap) node.material.bumpMap.dispose();
+          if (node.material.normalMap) node.material.normalMap.dispose();
+          if (node.material.specularMap) node.material.specularMap.dispose();
+          if (node.material.envMap) node.material.envMap.dispose();
+          node.material.dispose();
+        }
+      });
+    };
+  }, [scene]);
+
+  return <primitive object={scene} scale={[2.5, 2.5, 2.5]} position={[0, 0, 0]} rotation={[0, Math.PI / 4, 0]} />;
 }
 
-export function HoverEffect({ items }: HoverEffectProps) {
+const calculateStates = (allItems: GalleryItem[]) => {
+  const states: { startIndex: number; endIndex: number }[] = [];
+  for (let i = 0; i < allItems.length; i += 6) {
+    states.push({
+      startIndex: i,
+      endIndex: Math.min(i + 6, allItems.length),
+    });
+  }
+  return states;
+};
+
+export function HoverEffect({ allItems }: { allItems: GalleryItem[] }) {
+  const states = calculateStates(allItems);
+  const [currentStateIndex, setCurrentStateIndex] = useState(0);
+
+  const currentstate = states[currentStateIndex];
+
+  const handlePrev = () => {
+    setCurrentStateIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentStateIndex((prev) => Math.min(states.length - 1, prev + 1));
+  };
+  
+  const startIndex = currentstate?.startIndex;
+  const endIndex = currentstate?.endIndex;
+
+  const items = allItems.slice(startIndex, endIndex);
+
   return (
-    <div className="grid grid-cols-3 gap-8">
-      {items.map((item, idx) => (
-        <CardContainer
-          key={item.id ?? idx}
-          className="inter-var"
-        >
-          <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
-            <CardItem
-              translateZ="50"
-              className="text-xl font-bold text-neutral-600 dark:text-white"
-            >
-              {item.title}
-            </CardItem>
-            <CardItem
-              as="p"
-              translateZ="60"
-              className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-            >
-              {item.description}
-            </CardItem>
-            <CardItem translateZ="100" className="w-full mt-4">
-              <img
-                src={item.src}
-                alt={item.alt ?? ""}
-                className="h-60 w-full object-cover rounded-xl group-hover/card:shadow-xl"
-              />
-            </CardItem>
-            <div className="flex justify-between items-center mt-6">
-              <CardItem
-                translateZ={20}
-                as="a"
-                href={item.tryHref ?? "#"}
-                target="__blank"
-                className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
-              >
-                Try now →
+    <div className="relative ">
+      <div className="flex flex-wrap gap-8 justify-center">
+        {items.map((item, index) => {
+          const realIndex = allItems.indexOf(item)
+          return <CardContainer key={item.id} className="inter-var w-full">
+            <CardBody className="relative dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1]  h-auto rounded-xl border">
+              <CardItem               
+                className="text-xl font-bold text-neutral-600 dark:text-white flex items-center justify-center p-4"
+              >             
+
+                  <div className="relative w-full h-[250px]">
+                    <Suspense
+                      fallback={<div className="text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">Loading...</div>}
+                      className="flex items-center justify-center"
+                    >
+                    {realIndex >= startIndex && realIndex < endIndex ? (                 
+                          <Canvas key={`canvas-${item.id}`} shadows camera={{ position: [0, 0, 10], fov: 50 }} className="w-full h-full" >
+                            <Stage environment="city" intensity={0.5}>
+                             <Car scene={useLoader(GLTFLoader, item.modelPath).scene} />
+                             </Stage>
+                            <OrbitControls enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
+                            <Environment preset="city" />
+                          </Canvas>
+                      ) : null}
+                    </Suspense>
+                    <div className="absolute bottom-0 left-0 p-4 w-full">
+                      <p className="text-sm font-medium text-white">{item.alt}</p>
+
+
+                    </div>
+                  </div>
+
               </CardItem>
-              <CardItem
-                translateZ={20}
-                as="button"
-                className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
-              >
-                Sign up
-              </CardItem>
-            </div>
-          </CardBody>
-        </CardContainer>
-      ))}
+            </CardBody>
+          </CardContainer>
+        })}
+
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
+        {currentStateIndex > 0 && (
+          <button
+            onClick={handlePrev}
+            className="bg-black/50 hover:bg-black/70 p-4 rounded-r-full text-white"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        )}
+      </div>
+
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10">
+        {currentStateIndex < states.length -1 && (
+          <button
+            onClick={handleNext}
+            className="bg-black/50 hover:bg-black/70 p-4 rounded-l-full text-white"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        )}
+        </div>
+      </div>
     </div>
+
   );
 }
+
+
