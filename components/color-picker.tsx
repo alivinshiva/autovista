@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
@@ -10,18 +11,36 @@ interface ColorPickerProps {
   wheelColor: string
   onBodyColorChange: (color: string) => void
   onWheelColorChange: (color: string) => void
-  
 }
 
-const colorOptions = [
-  { value: "#ef4444", label: "Red" },
-  { value: "#3b82f6", label: "Blue" },
-  { value: "#22c55e", label: "Green" },
-  { value: "#f59e0b", label: "Yellow" },
-  { value: "#6b7280", label: "Gray" },
-  { value: "#ffffff", label: "White" },
-  { value: "#0f172a", label: "Black" },
-  { value: "#8b5cf6", label: "Purple" },
+const bodyColorGroups = {
+  Neutrals: [
+    { value: "#1c1c1e", label: "Jet Black" },
+    { value: "#f4f4f4", label: "Pearl White" },
+    { value: "#2c2d3c", label: "Magnetic Gray" },
+  ],
+  Blues: [
+    { value: "#003366", label: "Deep Navy Blue" },
+    { value: "#5f819d", label: "Ice Blue Metallic" },
+    { value: "#00c8d7", label: "Sky Cyan" },
+    { value: "#009ca6", label: "Teal Blue" },
+    { value: "#00ffff", label: "Electric Cyan" },
+  ],
+  Earth: [
+    { value: "#556b2f", label: "Olive Green" },
+    { value: "#483c32", label: "Mocha Brown" },
+  ],
+  Special: [
+    { value: "#a6192e", label: "Crimson Red" },
+    { value: "#c47400", label: "Copper Orange" },
+    { value: "#8e3e63", label: "Royal Burgundy" },
+  ],
+}
+
+const wheelColorOptions = [
+  { value: "#1c1c1e", label: "Jet Black" },
+  { value: "#6b7280", label: "Gunmetal Gray" },
+  { value: "#d4d4d4", label: "Metallic Silver" },
 ]
 
 export default function ColorPicker({
@@ -32,52 +51,79 @@ export default function ColorPicker({
 }: ColorPickerProps) {
   const [customBodyColor, setCustomBodyColor] = useState(bodyColor)
   const [customWheelColor, setCustomWheelColor] = useState(wheelColor)
-
-  const handleCustomBodyColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const color = e.target.value
-    setCustomBodyColor(color)
-    onBodyColorChange(color)
-  }
-
-  const handleCustomWheelColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const color = e.target.value
-    setCustomWheelColor(color)
-    onWheelColorChange(color)
-  }
+  const [activeTab, setActiveTab] = useState("Neutrals")
 
   return (
     <div className="space-y-6">
       {/* Body Color */}
       <div>
         <Label className="text-base">Body Color</Label>
-        <RadioGroup value={bodyColor} onValueChange={onBodyColorChange} className="grid grid-cols-4 gap-2 mt-2">
-          {colorOptions.map((color) => (
-            <ColorOption key={color.value} color={color} selectedColor={bodyColor} onChange={onBodyColorChange} />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+          <TabsList className="grid grid-cols-4 gap-1">
+            {Object.keys(bodyColorGroups).map((group) => (
+              <TabsTrigger key={group} value={group}>
+                {group}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {Object.entries(bodyColorGroups).map(([group, colors]) => (
+            <TabsContent key={group} value={group}>
+              <RadioGroup
+                value={bodyColor}
+                onValueChange={onBodyColorChange}
+                className="grid grid-cols-4 gap-2 mt-3"
+              >
+                {colors.map((color) => (
+                  <ColorOption
+                    key={color.value}
+                    color={color}
+                    selectedColor={bodyColor}
+                    onChange={onBodyColorChange}
+                  />
+                ))}
+              </RadioGroup>
+            </TabsContent>
           ))}
-        </RadioGroup>
+        </Tabs>
         <CustomColorInput
           label="Custom Body Color"
           color={customBodyColor}
-          onColorChange={handleCustomBodyColorChange}
+          onColorChange={(e) => {
+            const c = e.target.value
+            setCustomBodyColor(c)
+            onBodyColorChange(c)
+          }}
         />
       </div>
 
       {/* Wheel Color */}
       <div>
         <Label className="text-base">Wheel Color</Label>
-        <RadioGroup value={wheelColor} onValueChange={onWheelColorChange} className="grid grid-cols-4 gap-2 mt-2">
-          {colorOptions.map((color) => (
-            <ColorOption key={color.value} color={color} selectedColor={wheelColor} onChange={onWheelColorChange} />
+        <RadioGroup
+          value={wheelColor}
+          onValueChange={onWheelColorChange}
+          className="grid grid-cols-4 gap-2 mt-2"
+        >
+          {wheelColorOptions.map((color) => (
+            <ColorOption
+              key={color.value}
+              color={color}
+              selectedColor={wheelColor}
+              onChange={onWheelColorChange}
+              rounded
+            />
           ))}
         </RadioGroup>
         <CustomColorInput
           label="Custom Wheel Color"
           color={customWheelColor}
-          onColorChange={handleCustomWheelColorChange}
+          onColorChange={(e) => {
+            const c = e.target.value
+            setCustomWheelColor(c)
+            onWheelColorChange(c)
+          }}
         />
       </div>
-
-      
     </div>
   )
 }
@@ -86,10 +132,12 @@ const ColorOption = ({
   color,
   selectedColor,
   onChange,
+  rounded = true,
 }: {
   color: { value: string; label: string }
   selectedColor: string
   onChange: (color: string) => void
+  rounded?: boolean
 }) => (
   <div className="flex flex-col items-center space-y-1">
     <RadioGroupItem
@@ -101,11 +149,15 @@ const ColorOption = ({
     />
     <Label
       htmlFor={`color-${color.value}`}
-      className={`flex flex-col items-center justify-between rounded-md border-2 p-2 cursor-pointer 
-        ${selectedColor === color.value ? "border-primary" : "border-muted"} hover:border-accent`}
+      className={`flex flex-col items-center justify-between border-2 p-2 cursor-pointer 
+        ${selectedColor === color.value ? "border-primary" : "border-muted"} hover:border-accent rounded-md`}
       onClick={() => onChange(color.value)}
     >
-      <div className="w-8 h-8 rounded-full border border-slate-300" style={{ backgroundColor: color.value }} />
+      <div
+        className={`border border-slate-300 w-8 h-8 ${rounded ? "rounded-full" : "rounded-md"}`}
+        style={{ backgroundColor: color.value }}
+        title={color.label}
+      />
       <span className="mt-1 text-xs">{color.label}</span>
     </Label>
   </div>

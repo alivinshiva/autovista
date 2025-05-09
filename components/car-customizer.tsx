@@ -346,13 +346,17 @@ interface CarModel {
 }
 
 const carModels = [
-  { name: "Hyundai Creta", path: "/assets/3d/2023_hyundai_creta.glb", slug: "creta" },
-  { name: "Tata Safari", path: "/assets/3d/2021_tata_safari.glb", slug: "safari" },
-  { name: "Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb", slug: "baleno" },
-  { name: "Toyota Supra", path: "/assets/3d/toyota_gr_supra.glb", slug: "supra" },
-  { name: "Fortuner", path: "/assets/3d/fortuner2.glb", slug: "fortuner" },
+ 
+  { name: "Tata Safari", path: "/assets/3d/2021_tata_safari.glb", slug: "2021_tata_safari" },
+  { name: "Maruti Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb", slug: "2022_maruti_suzuki_baleno" },
+  { name: "Hyundai Creta", path: "/assets/3d/2023_hyundai_creta.glb", slug: "2023_hyundai_creta" },
   { name: "Audi", path: "/assets/3d/audi.glb", slug: "audi" },
+  { name: "BMW M4 CSL 2023", path: "/assets/3d/bmw_m4_csl_2023.glb", slug: "bmw_m4_csl_2023" },
+  { name: "Fortuner", path: "/assets/3d/fortuner.glb", slug: "fortuner" },
+  { name: "Fortuner 2", path: "/assets/3d/fortuner2.glb", slug: "fortuner2" },
+  { name: "Toyota GR Supra", path: "/assets/3d/toyota_gr_supra.glb", slug: "toyota_gr_supra" }
 ]
+
 
 function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale }: CarModel) {
   const { scene } = useGLTF(modelPath)
@@ -396,7 +400,7 @@ export default function CarCustomizer({ slug }: { slug: string }) {
   const defaultModel = carModels.find((m) => m.slug === slug) || carModels[0]
 
   const [carConfig, setCarConfig] = useState<CarModel>({
-    bodyColor: "#3b82f6",
+    bodyColor: "#2c2d3c",
     wheelColor: "#1e293b",
     wheels: "standard",
     headlights: "standard",
@@ -507,12 +511,6 @@ export default function CarCustomizer({ slug }: { slug: string }) {
               </TabsContent>
 
               <TabsContent value="accessories" className="space-y-4">
-                <AccessorySelector
-                  selectedWheels={carConfig.wheels}
-                  selectedHeadlights={carConfig.headlights}
-                  selectedInteriorColor={carConfig.interiorColor}
-                  onChange={(type, value) => setCarConfig((prev) => ({ ...prev, [type]: value }))}
-                />
                 <div className="space-y-2">
                   <Label htmlFor="wheel-scale">Wheel Size</Label>
                   <div className="flex items-center gap-3">
