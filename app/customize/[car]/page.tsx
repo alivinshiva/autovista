@@ -41,37 +41,39 @@
 //   )
 // }
 
-"use client"
+// app/customize/[car]/page.tsx
+import CarCustomizer from "@/components/car-customizer"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+interface CustomizePageProps {
+  params: { car: string }
+}
 
-export default function CustomizeRedirectPage() {
-  const router = useRouter()
-  const [fadeOut, setFadeOut] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFadeOut(true)
-    }, 300) // wait 300ms before starting fade
-
-    const redirectTimer = setTimeout(() => {
-      router.replace("/customize/creta") // default car route
-    }, 800) // after fadeOut starts, wait and redirect
-
-    return () => {
-      clearTimeout(timer)
-      clearTimeout(redirectTimer)
-    }
-  }, [router])
-
+export default function CustomizePage({ params }: CustomizePageProps) {
   return (
-    <div
-      className={`flex items-center justify-center min-h-screen transition-opacity duration-500 ${
-        fadeOut ? "opacity-0" : "opacity-100"
-      }`}
-    >
-      <h1 className="text-3xl font-bold">Redirecting...</h1>
-    </div>
+    <main className="min-h-screen flex flex-col">
+      <header className="border-b p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">AutoVista Customizer</h1>
+          <nav>
+            <ul className="flex space-x-4">
+              <li><a href="/" className="hover:text-primary">Home</a></li>
+              <li><a href="/gallery" className="hover:text-primary">Gallery</a></li>
+              <li><a href="#" className="hover:text-primary">About</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <div className="flex-grow container mx-auto p-4">
+        {/* Pass selected car slug to CarCustomizer */}
+        <CarCustomizer slug={params.car} />
+      </div>
+
+      <footer className="border-t p-4">
+        <div className="container mx-auto text-center text-sm text-muted-foreground">
+          <p>© 2025 AutoVista. All rights reserved.</p>
+        </div>
+      </footer>
+    </main>
   )
 }

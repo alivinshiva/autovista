@@ -33,6 +33,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuth } from '@clerk/nextjs/server'
 import { connectToDB } from '@/lib/mongodb'
 import { CarConfig } from '@/models/CarConfig'
+import { v4 as uuidv4 } from "uuid";
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
     await connectToDB()
 
     const {
+      id = uuidv4(), // Generate a new UUID if id is not provided
       userEmail,
       userName,
       modelName,
@@ -60,6 +63,7 @@ export async function POST(req: NextRequest) {
     } = body
 
     const result = await CarConfig.create({
+      _id: id, // Use the provided id or generate a new one
       userId,
       userEmail,
       userName,
