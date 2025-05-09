@@ -28,6 +28,7 @@ const CarConfigSchema = new mongoose.Schema({
   userEmail: { type: String },
   userName: { type: String },
   modelName: { type: String },
+  modelPath: { type: String },
   bodyColor: { type: String },
   wheelColor: { type: String },
   wheelScale: { type: Number },

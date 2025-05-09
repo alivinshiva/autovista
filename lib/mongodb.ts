@@ -10,14 +10,37 @@ if (!MONGODB_URI) {
 let cached = (global as any).mongoose || { conn: null, promise: null };
 
 export async function connectToDB() {
-  if (cached.conn) return cached.conn;
+  try {
+    if (cached.conn) {
+      console.log('Using cached database connection');
+      return cached.conn;
+    }
 
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      dbName: 'autovisa',
-      bufferCommands: false,
-    }).then((mongoose) => mongoose);
+    if (!cached.promise) {
+      const opts = {
+        dbName: 'autovisa',
+        bufferCommands: false,
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+      };
+
+      console.log('Connecting to MongoDB...');
+      cached.promise = mongoose.connect(MONGODB_URI, opts)
+        .then((mongoose) => {
+          console.log('MongoDB connected successfully');
+          return mongoose;
+        })
+        .catch((error) => {
+          console.error('MongoDB connection error:', error);
+          throw error;
+        });
+    }
+
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (error) {
+    console.error('Error in connectToDB:', error);
+    throw error;
   }
-  cached.conn = await cached.promise;
-  return cached.conn;
 }
