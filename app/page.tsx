@@ -8,6 +8,8 @@ import { Canvas } from "@react-three/fiber"
 import { Environment, PresentationControls, useGLTF } from "@react-three/drei"
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 import { HoverEffect } from "@/components/ui/card-hover-effect";
+import { getImageUrl, getAllImages } from "@/lib/appwrite"
+import { Models } from "appwrite"
 
 import {
   ChevronRight,
@@ -40,144 +42,25 @@ import {
 } from "@clerk/nextjs"
 import { Gallery } from "@/components/gallery"
 
-const carData = [
-  {
-    title: "Toyota Fortuner",
-    src: "/assets/image/amjith-s-8G4hNKdu60M-unsplash.jpg",
-
-    description: "Customized Audi in red color",
-    // link: "/car/audi",
-  },
-  {
-    title: "BMW M4",
-    src: "/assets/image/anastase-maragos-Lrfuy93_hAc-unsplash.jpg",
-    description: "Matte black BMW",
-    link: "/car/bmw",
-  },
-  {
-    title: "Toyota Supra",
-    src: "/assets/image/karsten-winegeart-afDsNrec8gI-unsplash.jpg",
-    description: "Neon green Lamborghini",
-    link: "/car/lambo",
-  },
-  {
-    title: "Hyundai Creta",
-    src: "/assets/image/tesla-fans-schweiz-7_OQMgoGzDw-unsplash.jpg",
-  },
-  {
-    title: "Audi GT-R",
-    src: "/assets/image/stevosdisposable-6DnSGv4VZlo-unsplash.jpg",
-  },
-  {
-    title: "Maruti Suzuki Beleno",
-    src: "/assets/image/live-car-p635p3cj7x0qkf44.jpg",
-  },
-];
-
-
-const projects = [
-  {
-    title: "Interactive 3D Viewer",
-    description:
-      "Explore every angle of your car with our interactive 3D model viewer powered by Three.js.",
-
-  },
-  {
-    title: "Color Customization",
-    description: "Choose from a wide range of colors or create your own custom shade for the perfect look.",
-
-  },
-  {
-    title: "Accessory Customization"
-    , description: "Personalize wheels, headlights, and interior colors to match your style preferences.",
-
-  },
-  {
-    title: "Upload Your Models",
-    description: "Import your own 3D models created in Blender or other 3D software for customization.",
-
-  },
-  {
-    title: "Light & Dark Mode",
-    description: "Enjoy a comfortable viewing experience with support for both light and dark themes.",
-
-  },
-  {
-    title: "Save & Share",
-    description: "Save your customizations and share them with friends or download for future reference.",
-
-  },
-];
-
-
-const words = [
-  {
-    text: "Customize",
-  },
-  {
-    text: "Your",
-  },
-  {
-    text: "Car",
-  },
-  {
-    text: "With",
-  },
-  {
-    text: "Fun",
-    className: "text-blue-500 dark:text-blue-500",
-  },
-];
-
-
-
-
-
-
-function CarModel() {
-  const { scene } = useGLTF("/assets/3d/fortuner.glb")
-  return (
-    <primitive
-      object={scene}
-      scale={[3, 3, 3]}
-      position={[0, -2, 0]}
-      rotation={[0, Math.PI / 4, 0]}
-    />
-  )
-}
-
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  delay,
-}: {
-  icon: any
-  title: string
-  description: string
-  delay: number
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="bg-card border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
-    >
-      <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-        <Icon className="text-primary w-6 h-6" />
-      </div>
-      <h3 className="text-xl font-bold mb-2">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
-    </motion.div>
-  )
-}
-
 export default function LandingPage() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const { isSignedIn } = useUser()
+  const [carImages, setCarImages] = useState<Models.File[]>([])
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const images = await getAllImages()
+        console.log("Fetched images:", images)
+        setCarImages(images)
+      } catch (error) {
+        console.error("Error fetching images:", error)
+      }
+    }
+    fetchImages()
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -191,6 +74,135 @@ export default function LandingPage() {
     }
   }
 
+  const carData = [
+    {
+      title: "Mahindra Thar",
+      src: carImages[0] ? getImageUrl(carImages[0].$id) : "/assets/image/amjith-s-8G4hNKdu60M-unsplash.jpg",
+      description: "A rugged, all-black Mahindra Thar showcasing its off-road capabilities and commanding presence.",
+    },
+    {
+      title: "Toyota Supra Mk IV",
+      src: carImages[1] ? getImageUrl(carImages[1].$id) : "/assets/image/anastase-maragos-Lrfuy93_hAc-unsplash.jpg",
+      description: "Iconic sports car with a sleek, aerodynamic design and powerful performance capabilities.",
+      link: "/car/bmw",
+    },
+    {
+      title: "Land Rover Defender",
+      src: carImages[2] ? getImageUrl(carImages[2].$id) : "/assets/image/karsten-winegeart-afDsNrec8gI-unsplash.jpg",
+      description: "Premium off-road SUV combining luxury with exceptional terrain-conquering capabilities.",
+      link: "/car/lambo",
+    },
+    {
+      title: "Tesla Roadster",
+      src: carImages[3] ? getImageUrl(carImages[3].$id) : "/assets/image/tesla-fans-schweiz-7_OQMgoGzDw-unsplash.jpg",
+      description: "Revolutionary electric sports car setting new standards in performance and innovation.",
+      link: "/car/tesla",
+    },
+    {
+      title: "Dodge Ram 1500",
+      src: carImages[4] ? getImageUrl(carImages[4].$id) : "/assets/image/stevosdisposable-6DnSGv4VZlo-unsplash.jpg",
+      description: "Powerful full-size pickup truck offering unmatched towing capacity and premium comfort.",
+      link: "/car/dodge",
+    },  
+    {
+      title: "AC Cobra",
+      src: carImages[5] ? getImageUrl(carImages[5].$id) : "/assets/image/live-car-p635p3cj7x0qkf44.jpg",
+      description: "Legendary British sports car known for its raw power and timeless design.",
+      link: "/car/ac",
+    },
+  ];
+
+  const projects = [
+    {
+      title: "Interactive 3D Viewer",
+      description:
+        "Explore every angle of your car with our interactive 3D model viewer powered by Three.js.",
+
+    },
+    {
+      title: "Color Customization",
+      description: "Choose from a wide range of colors or create your own custom shade for the perfect look.",
+
+    },
+    {
+      title: "Accessory Customization"
+      , description: "Personalize wheels, headlights, and interior colors to match your style preferences.",
+
+    },
+    {
+      title: "Upload Your Models",
+      description: "Import your own 3D models created in Blender or other 3D software for customization.",
+
+    },
+    {
+      title: "Light & Dark Mode",
+      description: "Enjoy a comfortable viewing experience with support for both light and dark themes.",
+
+    },
+    {
+      title: "Save & Share",
+      description: "Save your customizations and share them with friends or download for future reference.",
+
+    },
+  ];
+
+  const words = [
+    {
+      text: "Customize",
+    },
+    {
+      text: "Your",
+    },
+    {
+      text: "Car",
+    },
+    {
+      text: "With",
+    },
+    {
+      text: "Fun",
+      className: "text-blue-500 dark:text-blue-500",
+    },
+  ];
+
+  function CarModel() {
+    const { scene } = useGLTF("/assets/3d/fortuner.glb")
+    return (
+      <primitive
+        object={scene}
+        scale={[3, 3, 3]}
+        position={[0, -2, 0]}
+        rotation={[0, Math.PI / 4, 0]}
+      />
+    )
+  }
+
+  function FeatureCard({
+    icon: Icon,
+    title,
+    description,
+    delay,
+  }: {
+    icon: any
+    title: string
+    description: string
+    delay: number
+  }) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5 }}
+        className="bg-card border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+          <Icon className="text-primary w-6 h-6" />
+        </div>
+        <h3 className="text-xl font-bold mb-2">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
+      </motion.div>
+    )
+  }
 
   return (
     <div className="min-h-screen">
@@ -204,7 +216,7 @@ export default function LandingPage() {
           <div className="flex items-center space-x-4">
             <nav className="hidden md:flex space-x-6">
               <a href="#features" className="text-foreground/80 hover:text-foreground">Features</a>
-              <a href="#upload" className="text-foreground/80 hover:text-foreground">Upload Model</a>
+              <a href="#upload" className="text-foreground/80 hover:text-foreground">Model Gallery</a>
               <a onClick={handleCustomizeClick} className="cursor-pointer text-foreground/80 hover:text-foreground">
                 Customize
               </a>
@@ -296,33 +308,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Upload Model Section ,,,, to be replaced by gallery section */}
-      {/* <section id="upload" className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Upload Your Own 3D Models</h2>
-              <p className="text-xl text-muted-foreground">
-                Have a 3D model you created? Upload it to AutoVista and start customizing right away.
-              </p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} viewport={{ once: true }} className="bg-card border rounded-xl p-8 shadow-sm">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-12 text-center">
-                <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-medium mb-2">Drag and drop your 3D model here</h3>
-                <p className="text-muted-foreground mb-6">Supports GLB, GLTF formats (max 50MB)</p>
-                <Button>Select File</Button>
-              </div>
-              <div className="mt-6 text-sm text-muted-foreground">
-                <p>Your models are processed securely and privately. We support models created in Blender, Maya, 3DS Max, and other 3D modeling software.</p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section> */}
       <section id="upload" className="w-full px-4 py-8">
-        <div className="flex flex-col items-center justify-center   ">
-          <p className="text-neutral-600 dark:text-neutral-200 text-xs sm:text-base  ">
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-neutral-600 dark:text-neutral-200 text-xs sm:text-base">
             The road to freedom starts from here
           </p>
           <TypewriterEffectSmooth words={words} />
@@ -331,8 +319,6 @@ export default function LandingPage() {
           {carData.map((car, index) => (
             <Gallery key={index} car={car} />
           ))}
-          {/* <Gallery data={carImages} /> */}
-          {/* <Gallery  data={carImages}/> */}
         </div>
       </section>
 

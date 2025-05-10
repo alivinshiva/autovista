@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, Suspense } from "react"
+import { useState, useMemo, Suspense, useEffect } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Environment, useGLTF, Stage } from "@react-three/drei"
 import { Button } from "@/components/ui/button"
@@ -14,8 +14,26 @@ import AccessorySelector from "@/components/accessory-selector"
 import ThemeToggle from "@/components/theme-toggle"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUser } from "@clerk/nextjs"
+import { toast } from "sonner"
+import { getAllCarModels } from '@/lib/appwrite'
+import { Models } from 'appwrite'
+import { Html } from "@react-three/drei"
+import { useRouter } from "next/navigation"
+import ModelUpload from "./model-upload"
 
-interface CarModel {
+interface CarModel extends Models.Document {
+  modelName: string
+  modelPath: string
+  slug: string
+  imageUrl: string
+  fileId: string
+  companyName: string
+  year?: string
+  userId?: string
+  isCustom?: boolean
+}
+
+interface CarConfig {
   bodyColor: string
   wheelColor: string
   wheels: string
@@ -26,30 +44,84 @@ interface CarModel {
   modelName: string
   finish: "glossy" | "matte"
   wheelScale: number
+  imageUrl: string
+  fileId: string
 }
 
-interface UploadProgress {
-  name: string;
-  status: 'pending' | 'uploading' | 'success' | 'error';
-  progress: number;
-  error?: string;
+interface CarProps {
+  bodyColor: string;
+  wheelColor: string;
+  modelPath: string;
+  finish: "glossy" | "matte";
+  wheelScale: number;
 }
 
-const carModels = [
-  { name: "Tata Safari", path: "/assets/3d/2021_tata_safari.glb", slug: "2021_tata_safari" },
-  { name: "Maruti Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb", slug: "2022_maruti_suzuki_baleno" },
-  { name: "Hyundai Creta", path: "/assets/3d/2023_hyundai_creta.glb", slug: "2023_hyundai_creta" },
-  { name: "Audi", path: "/assets/3d/audi.glb", slug: "audi" },
-  { name: "BMW M4 CSL 2023", path: "/assets/3d/bmw_m4_csl_2023.glb", slug: "bmw_m4_csl_2023" },
-  { name: "Fortuner", path: "/assets/3d/fortuner.glb", slug: "fortuner" },
-  { name: "Fortuner 2", path: "/assets/3d/fortuner2.glb", slug: "fortuner2" },
-  { name: "Toyota GR Supra", path: "/assets/3d/toyota_gr_supra.glb", slug: "toyota_gr_supra" }
-]
+interface ModelViewerProps {
+  modelUrl: string;
+  bodyColor: string;
+  wheelColor: string;
+  finish: "glossy" | "matte";
+  wheelScale: number;
+}
 
-function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale }: CarModel) {
-  const { scene } = useGLTF(modelPath)
+function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale }: CarProps) {
+  const [modelUrl, setModelUrl] = useState<string>('')
+  const [error, setError] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
 
-  useMemo(() => {
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        setIsLoading(true)
+        setError('')
+        // Extract file ID from modelPath if it's a full URL
+        const fileId = modelPath.split('/').pop() || modelPath
+        const response = await fetch(`/api/models/${fileId}`)
+        const data = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load model')
+        }
+        
+        setModelUrl(data.url)
+      } catch (error) {
+        console.error('Error loading model:', error)
+        setError(error instanceof Error ? error.message : 'Failed to load model')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (modelPath) {
+      loadModel()
+    }
+  }, [modelPath])
+
+  if (isLoading) {
+    return <Html center><div>Loading model...</div></Html>
+  }
+
+  if (error) {
+    return <Html center><div className="text-red-500">{error}</div></Html>
+  }
+
+  if (!modelUrl) {
+    return <Html center><div>No model selected</div></Html>
+  }
+
+  return <ModelViewer 
+    modelUrl={modelUrl} 
+    bodyColor={bodyColor} 
+    wheelColor={wheelColor} 
+    finish={finish} 
+    wheelScale={wheelScale} 
+  />
+}
+
+function ModelViewer({ modelUrl, bodyColor, wheelColor, finish, wheelScale }: ModelViewerProps): JSX.Element {
+  const { scene } = useGLTF(modelUrl)
+
+  useEffect(() => {
     scene.traverse((node: any) => {
       if (node.isMesh && node.material) {
         const nodeName = node.name.toLowerCase()
@@ -81,38 +153,113 @@ function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale }: CarModel)
   )
 }
 
-export default function CarCustomizer({ slug }: { slug: string }) {
-  const { user } = useUser()
-  const defaultModel = carModels.find((m) => m.slug === slug) || carModels[0]
+interface CarCustomizerProps {
+  slug?: string;
+}
 
-  const [carConfig, setCarConfig] = useState<CarModel>({
-    bodyColor: "#2c2d3c",
-    wheelColor: "#1e293b",
-    wheels: "standard",
-    headlights: "standard",
+export default function CarCustomizer({ slug }: CarCustomizerProps) {
+  const { user } = useUser()
+  const router = useRouter()
+  const [models, setModels] = useState<CarModel[]>([])
+  const [selectedModel, setSelectedModel] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  const [carConfig, setCarConfig] = useState<CarConfig>({
+    bodyColor: "#ffffff",
+    wheelColor: "#000000",
+    wheels: "default",
+    headlights: "default",
     interiorColor: "#1e293b",
     zoom: 2.5,
-    modelPath: defaultModel.path,
-    modelName: defaultModel.name,
+    modelPath: "",
+    modelName: "",
     finish: "glossy",
     wheelScale: 1,
+    imageUrl: "",
+    fileId: "",
   })
 
   const [isSaving, setIsSaving] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
+
+  const fetchModels = async () => {
+    try {
+      setLoading(true)
+      const carModels = await getAllCarModels()
+      const typedModels = carModels.map(model => ({
+        ...model,
+        modelName: model.modelName || '',
+        modelPath: model.modelPath || '',
+        slug: model.slug || '',
+        imageUrl: model.imageUrl || '',
+        fileId: model.fileId || '',
+        companyName: model.companyName || '',
+        year: model.year || '',
+        userId: model.userId || '',
+        isCustom: model.isCustom || false,
+      })) as CarModel[]
+      
+      setModels(typedModels)
+      if (typedModels.length > 0) {
+        if (slug) {
+          const modelBySlug = typedModels.find(m => m.slug === slug)
+          if (modelBySlug) {
+            setSelectedModel(modelBySlug.fileId)
+            setCarConfig((prev) => ({
+              ...prev,
+              modelPath: modelBySlug.modelPath,
+              modelName: modelBySlug.modelName,
+              imageUrl: modelBySlug.imageUrl,
+              fileId: modelBySlug.fileId,
+            }))
+            return
+          }
+        }
+        const firstModel = typedModels[0]
+        setSelectedModel(firstModel.fileId)
+        setCarConfig((prev) => ({
+          ...prev,
+          modelPath: firstModel.modelPath,
+          modelName: firstModel.modelName,
+          imageUrl: firstModel.imageUrl,
+          fileId: firstModel.fileId,
+        }))
+      }
+    } catch (error) {
+      console.error('Error fetching car models:', error)
+      toast.error('Failed to load car models')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchModels()
+  }, [slug])
+
+  const handleUploadComplete = () => {
+    fetchModels()
+  }
+
+  // Filter models based on user and custom status
+  const preUploadedModels = models.filter(model => !model.isCustom)
+  const userModels = models.filter(model => model.isCustom && model.userId === user?.id)
 
   const handleZoomChange = (value: number[]) => {
     setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
   }
 
   const handleModelChange = (newModelPath: string) => {
-    const selectedModel = carModels.find((m) => m.path === newModelPath)
+    const selectedModel = models.find((m: CarModel) => m.modelPath === newModelPath)
     if (selectedModel) {
       setCarConfig((prev) => ({
         ...prev,
-        modelPath: selectedModel.path,
-        modelName: selectedModel.name,
+        modelPath: selectedModel.modelPath,
+        modelName: selectedModel.modelName,
+        imageUrl: selectedModel.imageUrl,
+        fileId: selectedModel.fileId,
       }))
+      // Update the URL with the new model slug
+      router.push(`/customize/${selectedModel.slug}`)
     }
   }
 
@@ -130,7 +277,9 @@ export default function CarCustomizer({ slug }: { slug: string }) {
         finish: carConfig.finish,
         wheels: carConfig.wheels,
         headlights: carConfig.headlights,
-        interiorColor: carConfig.interiorColor
+        interiorColor: carConfig.interiorColor,
+        imageUrl: carConfig.imageUrl,
+        fileId: carConfig.fileId,
       }
 
       const response = await fetch("/api/save-config", {
@@ -157,18 +306,25 @@ export default function CarCustomizer({ slug }: { slug: string }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       <div className="lg:col-span-2 bg-muted/30 rounded-lg overflow-hidden shadow-sm h-[500px] lg:h-[700px] relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
-        <Suspense fallback={<Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />}>
-          <Canvas shadows camera={{ position: [0, 0, 10], fov: 50 }}>
-            <Stage environment="studio" intensity={0.5}>
-              <Car {...carConfig} />
-            </Stage>
-            <OrbitControls enableZoom={true} enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
-            <Environment preset="city" />
-          </Canvas>
-        </Suspense>
+        {loading ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <Suspense fallback={
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+            </div>
+          }>
+            <Canvas shadows camera={{ position: [0, 0, 10], fov: 50 }}>
+              <Stage environment="studio" intensity={0.5}>
+                <Car {...carConfig} />
+              </Stage>
+              <OrbitControls enableZoom={true} enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
+              <Environment preset="city" />
+            </Canvas>
+          </Suspense>
+        )}
       </div>
 
       <div className="space-y-6 max-h-[700px] overflow-y-auto pr-2 scrollbar-hide">
@@ -229,106 +385,41 @@ export default function CarCustomizer({ slug }: { slug: string }) {
               </TabsContent>
 
               <TabsContent value="model" className="space-y-4">
-                <Label htmlFor="car-model">Choose a Model</Label>
+                <Label htmlFor="pre-uploaded-models">Pre-uploaded Models</Label>
                 <Select onValueChange={handleModelChange} value={carConfig.modelPath}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {carModels.map((model) => (
-                      <SelectItem key={model.path} value={model.path}>
-                        {model.name}
+                    {preUploadedModels.map((model: CarModel) => (
+                      <SelectItem key={model.$id} value={model.modelPath}>
+                        {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+
+                {userModels.length > 0 && (
+                  <div className="mt-4">
+                    <Label htmlFor="user-models">Your Models</Label>
+                    <Select onValueChange={handleModelChange} value={carConfig.modelPath}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Your Model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userModels.map((model: CarModel) => (
+                          <SelectItem key={model.$id} value={model.modelPath}>
+                            {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="view" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="zoom">Zoom Level</Label>
-                  <Slider
-                    id="zoom"
-                    min={1}
-                    max={5}
-                    step={0.1}
-                    value={[carConfig.zoom]}
-                    onValueChange={handleZoomChange}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Developer Tools</Label>
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={async () => {
-                      try {
-                        // Initialize progress for all models
-                        setUploadProgress(carModels.map(model => ({
-                          name: model.name,
-                          status: 'pending',
-                          progress: 0
-                        })))
-
-                        const response = await fetch('/api/upload-all-models', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                        })
-                        const data = await response.json()
-                        
-                        if (data.success) {
-                          // Update progress with results
-                          setUploadProgress(data.results.map((result: any) => ({
-                            name: result.name,
-                            status: result.status === 'success' ? 'success' : 'error',
-                            progress: result.status === 'success' ? 100 : 0,
-                            error: result.error
-                          })))
-                        } else {
-                          throw new Error(data.error || 'Failed to upload models')
-                        }
-                      } catch (error: any) {
-                        console.error('Error uploading models:', error)
-                        alert('Error uploading models: ' + error.message)
-                      }
-                    }}
-                  >
-                    Upload All Models to MongoDB
-                  </Button>
-
-                  {uploadProgress.length > 0 && (
-                    <div className="space-y-2 mt-4">
-                      {uploadProgress.map((progress) => (
-                        <div key={progress.name} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span>{progress.name}</span>
-                            <span className={progress.status === 'error' ? 'text-red-500' : 'text-green-500'}>
-                              {progress.status === 'success' ? '✓' : progress.status === 'error' ? '✗' : '...'}
-                            </span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${
-                                progress.status === 'success' 
-                                  ? 'bg-green-500' 
-                                  : progress.status === 'error' 
-                                  ? 'bg-red-500' 
-                                  : 'bg-blue-500'
-                              }`}
-                              style={{ width: `${progress.progress}%` }}
-                            />
-                          </div>
-                          {progress.error && (
-                            <p className="text-xs text-red-500">{progress.error}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <ModelUpload onUploadComplete={handleUploadComplete} />
               </TabsContent>
             </Tabs>
           </CardContent>
