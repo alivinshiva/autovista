@@ -52,7 +52,7 @@ export default function ColorPicker({
         <Label className="text-base">Body Color</Label>
         <RadioGroup value={bodyColor} onValueChange={onBodyColorChange} className="grid grid-cols-4 gap-2 mt-2">
           {colorOptions.map((color) => (
-            <ColorOption key={color.value} color={color} selectedColor={bodyColor} onChange={onBodyColorChange} />
+            <ColorOption key={`body-${color.value}`} prefix="body" color={color} selectedColor={bodyColor} />
           ))}
         </RadioGroup>
         <CustomColorInput
@@ -67,7 +67,7 @@ export default function ColorPicker({
         <Label className="text-base">Accent Color</Label>
         <RadioGroup value={wheelColor} onValueChange={onWheelColorChange} className="grid grid-cols-4 gap-2 mt-2">
           {colorOptions.map((color) => (
-            <ColorOption key={color.value} color={color} selectedColor={wheelColor} onChange={onWheelColorChange} />
+            <ColorOption key={`wheel-${color.value}`} prefix="wheel" color={color} selectedColor={wheelColor} />
           ))}
         </RadioGroup>
         <CustomColorInput
@@ -83,27 +83,25 @@ export default function ColorPicker({
 }
 
 const ColorOption = ({
+  prefix,
   color,
   selectedColor,
-  onChange,
 }: {
+  prefix: string
   color: { value: string; label: string }
   selectedColor: string
-  onChange: (color: string) => void
 }) => (
   <div className="flex flex-col items-center space-y-1">
     <RadioGroupItem
       value={color.value}
-      id={`color-${color.value}`}
+      id={`${prefix}-color-${color.value}`}
       checked={selectedColor === color.value}
-      onChange={() => onChange(color.value)}
       className="peer sr-only"
     />
     <Label
-      htmlFor={`color-${color.value}`}
+      htmlFor={`${prefix}-color-${color.value}`}
       className={`flex flex-col items-center justify-between rounded-md border-2 p-2 cursor-pointer 
         ${selectedColor === color.value ? "border-primary" : "border-muted"} hover:border-accent`}
-      onClick={() => onChange(color.value)}
     >
       <div className="w-8 h-8 rounded-full border border-slate-300" style={{ backgroundColor: color.value }} />
       <span className="mt-1 text-xs">{color.label}</span>

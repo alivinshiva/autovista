@@ -55,32 +55,49 @@ function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarMo
   useMemo(() => {
     scene.traverse((node: any) => {
       if (node.isMesh && node.material) {
-        const nodeName = node.name.toLowerCase()
+        const nodeName = node.name.toLowerCase();
 
-        // Update wheel material and transform
-        if (nodeName.includes("wheel") || nodeName.includes("tire")) {
-          node.material.color.set(wheelColor)
-          node.scale.set(wheelScale, wheelScale, wheelScale)
+        // Update accent material (rims and chrome accents)
+        if (nodeName.includes("rim") || nodeName.includes("chrome")) {
+          const materials = Array.isArray(node.material) ? node.material : [node.material];
+          materials.forEach(material => {
+            if (material.isMaterial) { 
+              material.color.set(wheelColor);
+              material.needsUpdate = true;
+            }
+          });
+        }
 
-          // Move wheels downward as they scale up to stay aligned with the ground
-          const offsetY = (wheelScale - 1) * -0.1
-          node.position.y = offsetY
+        // Apply wheel scale and position adjustments (applies to the whole wheel assembly)
+        if (nodeName.includes("wheel") || nodeName.includes("tire") || nodeName.includes("rim")) {
+             node.scale.set(wheelScale, wheelScale, wheelScale);
+             const offsetY = (wheelScale - 1) * -0.1;
+             node.position.y = offsetY;
         }
 
         // Update body color and finish
         if (
           nodeName.includes("body") ||
           nodeName.includes("chassis") ||
-          (nodeName.includes("car") && !nodeName.includes("wheel"))
+          (nodeName.includes("car") && 
+           !nodeName.includes("wheel") && 
+           !nodeName.includes("tire") && 
+           !nodeName.includes("rim") && 
+           !nodeName.includes("chrome")) // Ensure body color doesn't overwrite accent parts
         ) {
-          node.material.color.set(bodyColor)
-          node.material.metalness = finish === "glossy" ? 0.8 : 0.1
-          node.material.roughness = finish === "glossy" ? 0.2 : 0.7
-          node.material.needsUpdate = true
+          const materials = Array.isArray(node.material) ? node.material : [node.material];
+          materials.forEach(material => {
+            if (material.isMaterial) {
+              material.color.set(bodyColor);
+              material.metalness = finish === "glossy" ? 0.8 : 0.1;
+              material.roughness = finish === "glossy" ? 0.2 : 0.7;
+              material.needsUpdate = true;
+            }
+          });
         }
       }
-    })
-  }, [bodyColor, wheelColor, finish, wheelScale, scene])
+    });
+  }, [bodyColor, wheelColor, finish, wheelScale, scene]);
 
   return (
     <primitive
@@ -89,14 +106,14 @@ function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale = 1 }: CarMo
       position={[0, 0, 0]}
       rotation={[0, Math.PI / 4, 0]}
     />
-  )
+  );
 }
 
 export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
   const { user } = useUser()
   const [carConfig, setCarConfig] = useState<CarModel>({
-    bodyColor: "",
-    wheelColor: "",
+    bodyColor: "#ffffff", // Default to White
+    wheelColor: "#6b7280", // Default to Gray (for rims/chrome)
     wheels: "standard",
     headlights: "standard",
     interiorColor: "#1e293b",
@@ -105,32 +122,29 @@ export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
     modelName: "toyota_fortuner_2021",
     finish: "glossy",
     wheelScale: 1,
-  })
+  });
 
   const [isSaving, setIsSaving] = useState(false)
 
   const handleZoomChange = (value: number[]) => {
-    setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
-  }
+    setCarConfig((prev) => ({ ...prev, zoom: value[0] }));
+  };
 
-  // const handleModelChange = (newModelPath: string) => {
-  //   setCarConfig((prev) => ({ ...prev, modelPath: newModelPath }))
-  // }
   const handleModelChange = (newModelPath: string) => {
         const selectedModel = cars.find((m) => m.modelPath === newModelPath);
         setCarConfig((prev) => ({
             ...prev,
             modelPath: newModelPath,
-            modelName: selectedModel?.name || "Unknown",
-            bodyColor: "", // Reset body color
-            wheelColor: "", // Reset wheel color
+            modelName: selectedModel?.carName || "Unknown",
+            bodyColor: "#ffffff", // Reset body color to default White
+            wheelColor: "#6b7280", // Reset wheel color to default Gray
         }));
 
   }
 
 
   const saveConfiguration = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const payload = {
         ...carConfig,
@@ -142,46 +156,45 @@ export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
+      });
 
       alert("Configuration saved to database successfully!")
     } catch (error: any) {
       alert("Error saving configuration: " + error.message)
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const saveCar = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const payload = {
         userId: user?.id,
         modelPath: carConfig.modelPath,
         bodyColor: carConfig.bodyColor,
         wheelColor: carConfig.wheelColor,
-        accessories: [],
+        accessories: [], 
         shared: true,
-      }
+        carName: carConfig.modelName, 
+      };
 
-      await fetch("/api/saveCar", {
+      await fetch("/api/car/save", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
-      toast({ title: "Car saved to gallery!" })
+      });
+      toast({ title: "Car saved to gallery!" });
     } catch (error: any) {
-      toast({ title: "Error saving car: " + error.message, variant: "destructive" })
+      toast({ title: "Error saving car: " + error.message, variant: "destructive" });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
+
   const selectedModelName = useMemo(() => {
-    return (
-      cars.find((m) => m.modelPath === carConfig.modelPath)?.alt ||
-      "Unknown"
-    )
-  }, [carConfig.modelPath])
+    return carConfig.modelName || cars.find((m) => m.modelPath === carConfig.modelPath)?.carName || "Unknown";
+  }, [carConfig.modelName, carConfig.modelPath, cars]);
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
@@ -320,7 +333,7 @@ export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
                   className="inline-block w-5 h-5 rounded"
                   style={{ backgroundColor: carConfig.bodyColor }}
                 ></span>
-                <span className="font-mono">{carConfig.wheelColor}</span>
+                <span className="font-mono">{carConfig.bodyColor}</span> 
               </p>
               <p className="flex items-center gap-2">
                 Wheel Color:
@@ -345,5 +358,5 @@ export default function CarCustomizer({ cars }: { cars: GalleryItem[] }) {
         </Card>
       </div>
     </div>
-  )
+  );
 }
