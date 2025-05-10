@@ -54,10 +54,13 @@
     "expo-file-system": "latest",
     "expo-gl": "latest",
     "framer-motion": "latest",
+    "gridfs-stream": "^1.1.1",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "mongoose": "^8.12.1",
     "motion": "^12.7.4",
+    "multer": "^1.4.4",
+    "multer-gridfs-storage": "^5.0.2",
     "next": "^14.2.24",
     "next-themes": "latest",
     "react": "^18",
@@ -75,6 +78,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/gridfs-stream": "^0.5.39",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",

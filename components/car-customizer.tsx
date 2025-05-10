@@ -28,6 +28,13 @@ interface CarModel {
   wheelScale: number
 }
 
+interface UploadProgress {
+  name: string;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  progress: number;
+  error?: string;
+}
+
 const carModels = [
   { name: "Tata Safari", path: "/assets/3d/2021_tata_safari.glb", slug: "2021_tata_safari" },
   { name: "Maruti Suzuki Baleno", path: "/assets/3d/2022_maruti_suzuki_baleno.glb", slug: "2022_maruti_suzuki_baleno" },
@@ -92,6 +99,7 @@ export default function CarCustomizer({ slug }: { slug: string }) {
   })
 
   const [isSaving, setIsSaving] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
 
   const handleZoomChange = (value: number[]) => {
     setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
@@ -247,6 +255,79 @@ export default function CarCustomizer({ slug }: { slug: string }) {
                     value={[carConfig.zoom]}
                     onValueChange={handleZoomChange}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Developer Tools</Label>
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        // Initialize progress for all models
+                        setUploadProgress(carModels.map(model => ({
+                          name: model.name,
+                          status: 'pending',
+                          progress: 0
+                        })))
+
+                        const response = await fetch('/api/upload-all-models', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                        })
+                        const data = await response.json()
+                        
+                        if (data.success) {
+                          // Update progress with results
+                          setUploadProgress(data.results.map((result: any) => ({
+                            name: result.name,
+                            status: result.status === 'success' ? 'success' : 'error',
+                            progress: result.status === 'success' ? 100 : 0,
+                            error: result.error
+                          })))
+                        } else {
+                          throw new Error(data.error || 'Failed to upload models')
+                        }
+                      } catch (error: any) {
+                        console.error('Error uploading models:', error)
+                        alert('Error uploading models: ' + error.message)
+                      }
+                    }}
+                  >
+                    Upload All Models to MongoDB
+                  </Button>
+
+                  {uploadProgress.length > 0 && (
+                    <div className="space-y-2 mt-4">
+                      {uploadProgress.map((progress) => (
+                        <div key={progress.name} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{progress.name}</span>
+                            <span className={progress.status === 'error' ? 'text-red-500' : 'text-green-500'}>
+                              {progress.status === 'success' ? '✓' : progress.status === 'error' ? '✗' : '...'}
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${
+                                progress.status === 'success' 
+                                  ? 'bg-green-500' 
+                                  : progress.status === 'error' 
+                                  ? 'bg-red-500' 
+                                  : 'bg-blue-500'
+                              }`}
+                              style={{ width: `${progress.progress}%` }}
+                            />
+                          </div>
+                          {progress.error && (
+                            <p className="text-xs text-red-500">{progress.error}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

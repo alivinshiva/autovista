@@ -135,7 +135,7 @@ const words = [
 
 
 function CarModel() {
-  const { scene } = useGLTF("/assets/3d/fortuner2.glb")
+  const { scene } = useGLTF("/assets/3d/fortuner.glb")
   return (
     <primitive
       object={scene}
