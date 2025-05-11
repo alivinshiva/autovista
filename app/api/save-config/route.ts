@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { databases } from '@/lib/appwrite'
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID
-const CONFIG_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_CONFIG_COLLECTION_ID
+const CAR_CONFIGS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_CAR_CONFIGS_COLLECTION_ID
 
-if (!DATABASE_ID || !CONFIG_COLLECTION_ID) {
+if (!DATABASE_ID || !CAR_CONFIGS_COLLECTION_ID) {
   throw new Error('Please define the Appwrite database and collection IDs in .env')
 }
 
@@ -13,23 +13,20 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
     
-    // Create configuration document in Appwrite
+    // Create configuration document in Appwrite using car_configs collection
     const result = await databases.createDocument(
       DATABASE_ID as string,
-      CONFIG_COLLECTION_ID as string,
+      CAR_CONFIGS_COLLECTION_ID as string,
       'unique()', // Let Appwrite generate a unique ID
       {
         userId: data.userId,
         userEmail: data.userEmail,
         userName: data.userName,
+        modelId: data.modelId, // Reference to the car model in car_models collection
         modelName: data.modelName,
         bodyColor: data.bodyColor,
         wheelColor: data.wheelColor,
         wheelScale: data.wheelScale,
-        wheels: data.wheels,
-        headlights: data.headlights,
-        interiorColor: data.interiorColor,
-        accessories: data.accessories || [],
         isShared: false,
         createdAt: new Date().toISOString()
       }

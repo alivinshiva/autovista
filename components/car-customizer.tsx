@@ -333,15 +333,12 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
         userId: user?.id,
         userEmail: user?.emailAddresses[0]?.emailAddress,
         userName: user?.fullName,
+        modelId: carConfig.fileId,
         modelName: carConfig.modelName,
         bodyColor: carConfig.bodyColor,
         wheelColor: carConfig.wheelColor,
-        wheelScale: carConfig.wheelScale,
-        wheels: carConfig.wheels,
-        headlights: carConfig.headlights,
-        interiorColor: carConfig.interiorColor,
-        accessories: [],
-        isShared: false,
+        wheelScale: carConfig.wheelScale.toString(),
+        isShared: "false",
         createdAt: new Date().toISOString()
       };
 

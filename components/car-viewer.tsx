@@ -1,86 +1,70 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Stage } from '@react-three/drei';
-import { useGLTF } from '@react-three/drei';
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment, useGLTF, Stage } from "@react-three/drei";
+import { useEffect } from "react";
 
 interface CarViewerProps {
   modelPath: string;
-  bodyColor: string;
-  wheelColor: string;
-  finish: "glossy" | "matte";
-  wheelScale: number;
+  bodyColor?: string;
+  wheelColor?: string;
+  wheelScale?: number;
+  finish?: string;
 }
 
-function Car({ modelPath, bodyColor, wheelColor, finish, wheelScale }: CarViewerProps) {
-  const [model, setModel] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+function Model({ modelPath, bodyColor = "#ffffff", wheelColor = "#000000", wheelScale = 1 }: CarViewerProps) {
+  const { scene } = useGLTF(modelPath);
 
   useEffect(() => {
-    const loadModel = async () => {
-      try {
-        const response = await fetch(modelPath);
-        if (!response.ok) {
-          throw new Error(`Failed to load model: ${response.statusText}`);
+    scene.traverse((node: any) => {
+      if (node.isMesh && node.material) {
+        const nodeName = node.name.toLowerCase();
+
+        if (nodeName.includes("wheel") || nodeName.includes("tire")) {
+          node.material.color.set(wheelColor);
+          node.scale.set(wheelScale, wheelScale, wheelScale);
+          const offsetY = (wheelScale - 1) * -0.1;
+          node.position.y = offsetY;
         }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const { scene } = await useGLTF(url);
-        
-        // Apply materials to the model
-        scene.traverse((child: any) => {
-          if (child.isMesh) {
-            if (child.name.toLowerCase().includes('body')) {
-              child.material.color.set(bodyColor);
-              child.material.metalness = finish === "glossy" ? 0.8 : 0.2;
-              child.material.roughness = finish === "glossy" ? 0.2 : 0.8;
-            } else if (child.name.toLowerCase().includes('wheel')) {
-              child.material.color.set(wheelColor);
-              child.scale.set(wheelScale, wheelScale, wheelScale);
-            }
-          }
-        });
 
-        setModel(scene);
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error('Error loading model:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load model');
+        if (nodeName.includes("body") || nodeName.includes("chassis") || (nodeName.includes("car") && !nodeName.includes("wheel"))) {
+          node.material.color.set(bodyColor);
+          node.material.metalness = 0.8;
+          node.material.roughness = 0.2;
+          node.material.needsUpdate = true;
+        }
       }
-    };
+    });
+  }, [bodyColor, wheelColor, wheelScale, scene]);
 
-    loadModel();
-  }, [modelPath, bodyColor, wheelColor, finish, wheelScale]);
-
-  if (error) {
-    return <div className="text-red-500">Error: {error}</div>;
-  }
-
-  if (!model) {
-    return <div>Loading model...</div>;
-  }
-
-  return <primitive object={model} />;
+  return (
+    <primitive
+      object={scene}
+      scale={[2.5, 2.5, 2.5]}
+      position={[0, 0, 0]}
+      rotation={[0, Math.PI / 4, 0]}
+    />
+  );
 }
 
 export default function CarViewer(props: CarViewerProps) {
   return (
-    <div className="w-full h-full">
-      <Suspense fallback={<div>Loading...</div>}>
-        <Canvas shadows camera={{ position: [0, 0, 10], fov: 50 }}>
-          <Stage environment="studio" intensity={0.5}>
-            <Car {...props} />
-          </Stage>
-          <OrbitControls 
-            enableZoom={true} 
-            enablePan={false} 
-            minPolarAngle={Math.PI / 4} 
-            maxPolarAngle={Math.PI / 2} 
-          />
-          <Environment preset="city" />
-        </Canvas>
-      </Suspense>
-    </div>
+    <Canvas
+      camera={{ position: [0, 0, 5], fov: 45 }}
+      style={{ width: '100%', height: '100%' }}
+    >
+      <Stage environment="city" intensity={0.5}>
+        <Model {...props} />
+      </Stage>
+      <OrbitControls
+        enableZoom={true}
+        enablePan={true}
+        enableRotate={true}
+        zoomSpeed={0.6}
+        panSpeed={0.5}
+        rotateSpeed={0.4}
+      />
+      <Environment preset="city" />
+    </Canvas>
   );
 } 

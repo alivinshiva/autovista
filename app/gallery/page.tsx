@@ -6,10 +6,10 @@ import { HoverEffect } from "@/components/GallerCard";
 import Link from 'next/link';
 import { getAllCarModels, getImageUrl } from '@/lib/appwrite'
 import { useUser } from "@clerk/nextjs";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, useGLTF, Stage } from "@react-three/drei";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
+import CarViewer from '@/components/car-viewer';
 
 interface CarModel {
   id: string;
@@ -30,46 +30,6 @@ interface CarModel {
 
 const PLACEHOLDER_IMAGE = '/assets/image/placeholder-car.jpg'; // Make sure this exists or use any placeholder
 
-function ModelViewer({ modelUrl, bodyColor = "#ffffff", wheelColor = "#000000", wheelScale = 1 }: { 
-  modelUrl: string;
-  bodyColor?: string;
-  wheelColor?: string;
-  wheelScale?: number;
-}) {
-  const { scene } = useGLTF(modelUrl);
-
-  useEffect(() => {
-    scene.traverse((node: any) => {
-      if (node.isMesh && node.material) {
-        const nodeName = node.name.toLowerCase();
-
-        if (nodeName.includes("wheel") || nodeName.includes("tire")) {
-          node.material.color.set(wheelColor);
-          node.scale.set(wheelScale, wheelScale, wheelScale);
-          const offsetY = (wheelScale - 1) * -0.1;
-          node.position.y = offsetY;
-        }
-
-        if (nodeName.includes("body") || nodeName.includes("chassis") || (nodeName.includes("car") && !nodeName.includes("wheel"))) {
-          node.material.color.set(bodyColor);
-          node.material.metalness = 0.8;
-          node.material.roughness = 0.2;
-          node.material.needsUpdate = true;
-        }
-      }
-    });
-  }, [bodyColor, wheelColor, wheelScale, scene]);
-
-  return (
-    <primitive
-      object={scene}
-      scale={[2.5, 2.5, 2.5]}
-      position={[0, 0, 0]}
-      rotation={[0, Math.PI / 4, 0]}
-    />
-  );
-}
-
 export default function GalleryPage() {
   const { user } = useUser();
   const [carData, setCarData] = useState<CarModel[]>([]);
@@ -77,6 +37,7 @@ export default function GalleryPage() {
   const [selectedModel, setSelectedModel] = useState<CarModel | null>(null);
   const [modelUrl, setModelUrl] = useState<string>('');
   const [isLoadingModel, setIsLoadingModel] = useState(false);
+  const [savedConfig, setSavedConfig] = useState<any>(null);
 
   useEffect(() => {
     async function fetchCars() {
@@ -126,6 +87,7 @@ export default function GalleryPage() {
     setSelectedModel(model);
     setIsLoadingModel(true);
     try {
+      // Fetch the model URL
       const fileId = model.modelPath.split('/').pop() || model.modelPath;
       const response = await fetch(`/api/models/${fileId}`);
       const data = await response.json();
@@ -135,15 +97,25 @@ export default function GalleryPage() {
       }
       
       setModelUrl(data.url);
+
+      // Fetch saved configuration if it exists
+      const configResponse = await fetch(`/api/get-config?modelId=${model.fileId}`);
+      const configData = await configResponse.json();
+      if (configData.success && configData.config) {
+        setSavedConfig(configData.config);
+      } else {
+        setSavedConfig(null);
+      }
     } catch (error) {
       console.error('Error loading model:', error);
+      toast.error('Failed to load model');
     } finally {
       setIsLoadingModel(false);
     }
   };
 
   return (
-    <>
+    <main className="min-h-screen flex flex-col">
       {/* Navbar */}
       <nav className="w-full px-6 py-4 flex justify-between items-center shadow-md bg-white dark:bg-neutral-900 sticky top-0 z-50">
         <div className="text-2xl font-bold text-red-500">
@@ -187,35 +159,73 @@ export default function GalleryPage() {
       {/* View Dialog */}
       <Dialog open={!!selectedModel} onOpenChange={() => setSelectedModel(null)}>
         <DialogContent className="max-w-4xl h-[80vh]">
-          <div className="w-full h-full">
-            {isLoadingModel ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-              </div>
-            ) : modelUrl && selectedModel ? (
-              <Canvas shadows camera={{ position: [0, 0, 10], fov: 50 }}>
-                <Stage environment="studio" intensity={0.5}>
-                  <ModelViewer 
-                    modelUrl={modelUrl}
-                    bodyColor={selectedModel.bodyColor}
-                    wheelColor={selectedModel.wheelColor}
-                    wheelScale={selectedModel.wheelScale}
-                  />
-                </Stage>
-                <OrbitControls 
-                  enableZoom={true} 
-                  enablePan={false} 
-                  minPolarAngle={Math.PI / 4} 
-                  maxPolarAngle={Math.PI / 2}
-                  autoRotate
-                  autoRotateSpeed={1}
+          <DialogTitle className="text-2xl font-bold mb-2">
+            {selectedModel?.title}
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground mb-4">
+            {selectedModel?.description}
+          </DialogDescription>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            <div className="h-[400px] lg:h-full">
+              {isLoadingModel ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <CarViewer
+                  modelPath={modelUrl}
+                  bodyColor={savedConfig?.bodyColor || selectedModel?.bodyColor || "#ffffff"}
+                  wheelColor={savedConfig?.wheelColor || selectedModel?.wheelColor || "#000000"}
+                  finish="glossy"
+                  wheelScale={savedConfig?.wheelScale ? parseFloat(savedConfig.wheelScale) : selectedModel?.wheelScale || 1}
                 />
-                <Environment preset="city" />
-              </Canvas>
-            ) : null}
+              )}
+            </div>
+            <div className="space-y-4">
+              {savedConfig && (
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Saved Configuration</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Body Color</p>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded-full border" 
+                          style={{ backgroundColor: savedConfig.bodyColor }}
+                        />
+                        <span>{savedConfig.bodyColor}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Wheel Color</p>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded-full border" 
+                          style={{ backgroundColor: savedConfig.wheelColor }}
+                        />
+                        <span>{savedConfig.wheelColor}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Wheel Size</p>
+                      <span>{savedConfig.wheelScale}x</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <Link 
+                  href={selectedModel?.customizeLink || '#'}
+                  className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-sm font-bold"
+                >
+                  Customize
+                </Link>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </main>
   );
 }
