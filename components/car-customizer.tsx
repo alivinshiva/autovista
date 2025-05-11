@@ -183,8 +183,9 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
 
   const fetchModels = async () => {
     try {
-      setLoading(true)
-      const carModels = await getAllCarModels()
+      setLoading(true);
+      const carModels = await getAllCarModels();
+      
       const typedModels = carModels.map(model => ({
         ...model,
         modelName: model.modelName || '',
@@ -196,53 +197,59 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
         year: model.year || '',
         userId: model.userId || '',
         isCustom: model.isCustom || false,
-      })) as CarModel[]
+      })) as CarModel[];
+
+      // Show pre-uploaded models (userId === "owner") and user's own models
+      const filteredModels = typedModels.filter(model => {
+        return model.userId === "owner" || model.userId === user?.id;
+      });
       
-      setModels(typedModels)
-      if (typedModels.length > 0) {
+      setModels(filteredModels);
+      
+      if (filteredModels.length > 0) {
         if (slug) {
-          const modelBySlug = typedModels.find(m => m.slug === slug)
+          const modelBySlug = filteredModels.find(m => m.slug === slug);
           if (modelBySlug) {
-            setSelectedModel(modelBySlug.fileId)
+            setSelectedModel(modelBySlug.fileId);
             setCarConfig((prev) => ({
               ...prev,
               modelPath: modelBySlug.modelPath,
               modelName: modelBySlug.modelName,
               imageUrl: modelBySlug.imageUrl,
               fileId: modelBySlug.fileId,
-            }))
-            return
+            }));
+            return;
           }
         }
-        const firstModel = typedModels[0]
-        setSelectedModel(firstModel.fileId)
+        const firstModel = filteredModels[0];
+        setSelectedModel(firstModel.fileId);
         setCarConfig((prev) => ({
           ...prev,
           modelPath: firstModel.modelPath,
           modelName: firstModel.modelName,
           imageUrl: firstModel.imageUrl,
           fileId: firstModel.fileId,
-        }))
+        }));
       }
     } catch (error) {
-      console.error('Error fetching car models:', error)
-      toast.error('Failed to load car models')
+      console.error('Error fetching car models:', error);
+      toast.error('Failed to load car models');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchModels()
-  }, [slug])
+    fetchModels();
+  }, [slug, user?.id]); // Re-fetch when user changes
 
   const handleUploadComplete = () => {
-    fetchModels()
-  }
+    fetchModels();
+  };
 
-  // Filter models based on user and custom status
-  const preUploadedModels = models.filter(model => !model.isCustom)
-  const userModels = models.filter(model => model.isCustom && model.userId === user?.id)
+  // Filter models based on user ID
+  const preUploadedModels = models.filter(model => model.userId === "owner");
+  const userModels = models.filter(model => model.userId === user?.id);
 
   const handleZoomChange = (value: number[]) => {
     setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
@@ -447,32 +454,55 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
                     <SelectValue placeholder="Select a Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {models.map((model: CarModel) => (
-                      <div key={model.$id} className="relative group">
-                        <div className="flex items-center justify-between w-full">
+                    {/* Pre-uploaded Models */}
+                    {preUploadedModels.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                          Pre-uploaded Models
+                        </div>
+                        {preUploadedModels.map((model: CarModel) => (
                           <SelectItem 
+                            key={model.$id} 
                             value={model.modelPath}
-                            className="flex-1"
                           >
                             {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
                           </SelectItem>
-                          {model.userId && model.userId !== "owner" && model.userId === user?.id && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleDeleteModel(model);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* User's Custom Models */}
+                    {userModels.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                          Your Models
                         </div>
-                      </div>
-                    ))}
+                        {userModels.map((model: CarModel) => (
+                          <div key={model.$id} className="relative group">
+                            <div className="flex items-center justify-between w-full">
+                              <SelectItem 
+                                value={model.modelPath}
+                                className="flex-1"
+                              >
+                                {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
+                              </SelectItem>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeleteModel(model);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </TabsContent>

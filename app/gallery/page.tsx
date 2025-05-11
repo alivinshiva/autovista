@@ -5,6 +5,7 @@ import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 import { HoverEffect } from "@/components/GallerCard";
 import Link from 'next/link';
 import { getAllCarModels, getImageUrl } from '@/lib/appwrite'
+import { useUser } from "@clerk/nextjs";
 
 interface CarModel {
   id: string;
@@ -14,37 +15,49 @@ interface CarModel {
   description: string;
   customizeLink: string;
   viewLink: string;
+  userId?: string;
+  isCustom?: boolean;
+  fileId: string;
 }
 
 const PLACEHOLDER_IMAGE = '/assets/image/placeholder-car.jpg'; // Make sure this exists or use any placeholder
 
 export default function GalleryPage() {
+  const { user } = useUser();
   const [carData, setCarData] = useState<CarModel[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCars() {
       try {
+        setLoading(true);
         const models = await getAllCarModels();
+        
         const carModels = models.map(model => {
           let imageUrl = '';
           if (model.imageUrl) {
             imageUrl = getImageUrl(model.imageUrl);
-            console.log('Model:', model.modelName, 'imageUrl:', model.imageUrl, '->', imageUrl);
-          } else {
-            console.warn('Model missing imageUrl:', model);
           }
           return {
-            id: model.slug,
+            id: model.$id,
             title: model.modelName,
             src: imageUrl || PLACEHOLDER_IMAGE,
             alt: model.modelName,
             description: `${model.companyName || ''} ${model.year || ''}`.trim(),
             customizeLink: `/customize/${model.slug}`,
             viewLink: `/view/${model.slug}`,
+            userId: model.userId,
+            isCustom: model.isCustom,
+            fileId: model.fileId
           };
         });
-        setCarData(carModels);
+
+        // Show pre-uploaded models (userId === "owner") and user's own models
+        const filteredModels = carModels.filter(model => {
+          return model.userId === "owner" || model.userId === user?.id;
+        });
+        
+        setCarData(filteredModels);
       } catch (error) {
         console.error('Error fetching car models:', error);
       } finally {
@@ -52,7 +65,7 @@ export default function GalleryPage() {
       }
     }
     fetchCars();
-  }, []);
+  }, [user?.id]); // Re-fetch when user changes
 
   return (
     <>
