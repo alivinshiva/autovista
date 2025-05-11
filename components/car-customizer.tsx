@@ -327,44 +327,44 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
   };
 
   const saveConfiguration = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const payload = {
         userId: user?.id,
         userEmail: user?.emailAddresses[0]?.emailAddress,
+        userName: user?.fullName,
         modelName: carConfig.modelName,
-        modelPath: carConfig.modelPath,
         bodyColor: carConfig.bodyColor,
         wheelColor: carConfig.wheelColor,
         wheelScale: carConfig.wheelScale,
-        finish: carConfig.finish,
         wheels: carConfig.wheels,
         headlights: carConfig.headlights,
         interiorColor: carConfig.interiorColor,
-        imageUrl: carConfig.imageUrl,
-        fileId: carConfig.fileId,
-      }
+        accessories: [],
+        isShared: false,
+        createdAt: new Date().toISOString()
+      };
 
       const response = await fetch("/api/save-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
       
       if (!data.success) {
-        throw new Error(data.error || "Failed to save configuration")
+        throw new Error(data.error || "Failed to save configuration");
       }
 
-      alert("Configuration saved successfully!")
+      toast.success("Configuration saved successfully!");
     } catch (error: any) {
-      console.error("Error saving configuration:", error)
-      alert("Error saving configuration: " + error.message)
+      console.error("Error saving configuration:", error);
+      toast.error("Error saving configuration: " + error.message);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">

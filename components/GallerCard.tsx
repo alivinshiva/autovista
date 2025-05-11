@@ -5,21 +5,24 @@ import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-interface GalleryItem {
+export interface GalleryItem {
   id: string;
   title: string;
-  description: string;
   src: string;
   alt: string;
+  description: string;
   customizeLink: string;
   viewLink: string;
+  userId?: string;
+  isCustom?: boolean;
+  fileId: string;
+  modelPath: string;
+  bodyColor?: string;
+  wheelColor?: string;
+  wheelScale?: number;
 }
 
-interface HoverEffectProps {
-  items: GalleryItem[];
-}
-
-export function HoverEffect({ items }: HoverEffectProps) {
+export function HoverEffect({ items, onView }: { items: GalleryItem[]; onView: (item: GalleryItem) => void }) {
   const router = useRouter();
 
   return (
@@ -49,7 +52,7 @@ export function HoverEffect({ items }: HoverEffectProps) {
               <CardItem
                 translateZ={20}
                 as="button"
-                onClick={() => router.push(item.viewLink)}
+                onClick={() => onView(item)}
                 className="px-4 py-2 rounded-xl bg-gray-200 text-black text-xs font-bold hover:bg-gray-300"
               >
                 View

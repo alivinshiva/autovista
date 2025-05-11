@@ -1,76 +1,53 @@
 // app/api/save-config/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import mongoose from 'mongoose'
+import { databases } from '@/lib/appwrite'
 
-// Define the schema directly in the route file
-const CarConfigSchema = new mongoose.Schema({
-  userId: String,
-  userEmail: String,
-  modelName: String,
-  modelPath: String,
-  bodyColor: String,
-  wheelColor: String,
-  wheelScale: Number,
-  finish: String,
-  wheels: String,
-  headlights: String,
-  interiorColor: String,
-  createdAt: { type: Date, default: Date.now }
-})
+const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID
+const CONFIG_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_CONFIG_COLLECTION_ID
 
-// Create model if it doesn't exist
-const CarConfig = mongoose.models.CarConfig || mongoose.model('CarConfig', CarConfigSchema)
+if (!DATABASE_ID || !CONFIG_COLLECTION_ID) {
+  throw new Error('Please define the Appwrite database and collection IDs in .env')
+}
 
 export async function POST(req: NextRequest) {
   try {
-    // Connect to MongoDB
-    const MONGODB_URI = process.env.MONGODB_URI
-    if (!MONGODB_URI) {
-      throw new Error('MongoDB URI is not defined')
-    }
-
-    await mongoose.connect(MONGODB_URI, {
-      dbName: 'autovisa'
-    })
-
-    // Get request data
     const data = await req.json()
     
-    // Create new config
-    const config = new CarConfig({
-      userId: data.userId,
-      userEmail: data.userEmail,
-      modelName: data.modelName,
-      modelPath: data.modelPath,
-      bodyColor: data.bodyColor,
-      wheelColor: data.wheelColor,
-      wheelScale: data.wheelScale,
-      finish: data.finish,
-      wheels: data.wheels,
-      headlights: data.headlights,
-      interiorColor: data.interiorColor
-    })
-
-    // Save to database
-    await config.save()
+    // Create configuration document in Appwrite
+    const result = await databases.createDocument(
+      DATABASE_ID as string,
+      CONFIG_COLLECTION_ID as string,
+      'unique()', // Let Appwrite generate a unique ID
+      {
+        userId: data.userId,
+        userEmail: data.userEmail,
+        userName: data.userName,
+        modelName: data.modelName,
+        bodyColor: data.bodyColor,
+        wheelColor: data.wheelColor,
+        wheelScale: data.wheelScale,
+        wheels: data.wheels,
+        headlights: data.headlights,
+        interiorColor: data.interiorColor,
+        accessories: data.accessories || [],
+        isShared: false,
+        createdAt: new Date().toISOString()
+      }
+    )
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Configuration saved successfully',
-      configId: config._id 
+      id: result.$id 
     })
-
-  } catch (error: any) {
-    console.error('Save config error:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: error.message || 'Failed to save configuration' 
-    }, { 
-      status: 500 
-    })
-  } finally {
-    // Close the connection
-    await mongoose.disconnect()
+  } catch (error) {
+    console.error('Error saving configuration:', error)
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to save configuration' 
+      },
+      { status: 500 }
+    )
   }
 }
 
