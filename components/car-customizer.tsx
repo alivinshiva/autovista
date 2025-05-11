@@ -8,14 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
-import { Loader2 } from "lucide-react"
+import { Loader2, Trash2 } from "lucide-react"
 import ColorPicker from "@/components/color-picker"
 import AccessorySelector from "@/components/accessory-selector"
 import ThemeToggle from "@/components/theme-toggle"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUser } from "@clerk/nextjs"
 import { toast } from "sonner"
-import { getAllCarModels } from '@/lib/appwrite'
+import { getAllCarModels, deleteCarModelAndFiles } from '@/lib/appwrite'
 import { Models } from 'appwrite'
 import { Html } from "@react-three/drei"
 import { useRouter } from "next/navigation"
@@ -263,6 +263,62 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
     }
   }
 
+  const handleDeleteModel = async (model: CarModel) => {
+    console.log('Delete button clicked for model:', model);
+    
+    if (!confirm(`Are you sure you want to delete ${model.modelName}?`)) {
+      console.log('Delete cancelled by user');
+      return;
+    }
+
+    try {
+      console.log('Starting delete process...');
+      setLoading(true);
+      
+      console.log('Model details:', {
+        modelId: model.$id,
+        fileId: model.fileId,
+        imageUrl: model.imageUrl,
+        modelName: model.modelName
+      });
+      
+      // Call the delete function
+      const result = await deleteCarModelAndFiles(model.$id, model.fileId, model.imageUrl);
+      console.log('Delete result:', result);
+      
+      if (result) {
+        console.log('Delete successful, updating UI...');
+        // Show success message
+        toast.success("Model deleted successfully");
+        
+        // Update the models list
+        const updatedModels = models.filter(m => m.$id !== model.$id);
+        setModels(updatedModels);
+        
+        // If the deleted model was selected, select another model
+        if (model.fileId === carConfig.fileId) {
+          const firstModel = updatedModels[0];
+          if (firstModel) {
+            setCarConfig(prev => ({
+              ...prev,
+              modelPath: firstModel.modelPath,
+              modelName: firstModel.modelName,
+              imageUrl: firstModel.imageUrl,
+              fileId: firstModel.fileId,
+            }));
+          }
+        }
+      } else {
+        throw new Error('Delete operation failed');
+      }
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      toast.error("Failed to delete model. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const saveConfiguration = async () => {
     setIsSaving(true)
     try {
@@ -385,37 +441,40 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
               </TabsContent>
 
               <TabsContent value="model" className="space-y-4">
-                <Label htmlFor="pre-uploaded-models">Pre-uploaded Models</Label>
+                <Label htmlFor="car-model">Select Car Model</Label>
                 <Select onValueChange={handleModelChange} value={carConfig.modelPath}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {preUploadedModels.map((model: CarModel) => (
-                      <SelectItem key={model.$id} value={model.modelPath}>
-                        {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
-                      </SelectItem>
+                    {models.map((model: CarModel) => (
+                      <div key={model.$id} className="relative group">
+                        <div className="flex items-center justify-between w-full">
+                          <SelectItem 
+                            value={model.modelPath}
+                            className="flex-1"
+                          >
+                            {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
+                          </SelectItem>
+                          {model.userId && model.userId !== "owner" && model.userId === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDeleteModel(model);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
-
-                {userModels.length > 0 && (
-                  <div className="mt-4">
-                    <Label htmlFor="user-models">Your Models</Label>
-                    <Select onValueChange={handleModelChange} value={carConfig.modelPath}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Your Model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {userModels.map((model: CarModel) => (
-                          <SelectItem key={model.$id} value={model.modelPath}>
-                            {model.companyName} {model.modelName} {model.year ? `(${model.year})` : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </TabsContent>
 
               <TabsContent value="view" className="space-y-4">

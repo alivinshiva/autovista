@@ -109,4 +109,37 @@ export async function getAllImages() {
 
 export function getImageUrl(fileId: string) {
   return storage.getFileView(BUCKET_ID, fileId).toString();
+}
+
+export async function deleteCarModelAndFiles(modelId: string, fileId: string, imageUrl: string) {
+  try {
+    // Delete from database first
+    await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, modelId);
+    
+    // Extract file IDs from URLs if they are full URLs
+    const modelFileId = fileId.includes('/') ? fileId.split('/').pop() || fileId : fileId;
+    const imageFileId = imageUrl.includes('/') ? imageUrl.split('/').pop() || imageUrl : imageUrl;
+    
+    // Delete files from storage
+    try {
+      if (modelFileId) {
+        await storage.deleteFile(BUCKET_ID, modelFileId);
+      }
+    } catch (error) {
+      console.error("Error deleting model file:", error);
+    }
+
+    if (imageFileId) {
+      try {
+        await storage.deleteFile(BUCKET_ID, imageFileId);
+      } catch (error) {
+        console.error("Error deleting image file:", error);
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error deleting car model:", error);
+    throw error;
+  }
 } 
