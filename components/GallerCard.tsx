@@ -1,6 +1,11 @@
 'use client';
 
-import React from "react";
+import React, { useEffect, Suspense, useState, useRef } from "react";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { OrbitControls, Environment, Stage } from "@react-three/drei";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -71,5 +76,8 @@ export function HoverEffect({ items, onView }: { items: GalleryItem[]; onView: (
         </CardContainer>
       ))}
     </div>
+
   );
 }
+
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, Suspense, useEffect } from "react"
+import React, { useState, useMemo, Suspense, useEffect } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Environment, useGLTF, Stage } from "@react-three/drei"
 import { Button } from "@/components/ui/button"
@@ -63,6 +63,7 @@ interface ModelViewerProps {
   finish: "glossy" | "matte";
   wheelScale: number;
 }
+const defaultModelPath = "/assets/3d/toyota_fortuner_2021.glb"
 
 function Car({ bodyColor, wheelColor, modelPath, finish, wheelScale }: CarProps) {
   const [modelUrl, setModelUrl] = useState<string>('')
@@ -124,24 +125,49 @@ function ModelViewer({ modelUrl, bodyColor, wheelColor, finish, wheelScale }: Mo
   useEffect(() => {
     scene.traverse((node: any) => {
       if (node.isMesh && node.material) {
-        const nodeName = node.name.toLowerCase()
+        const nodeName = node.name.toLowerCase();
 
-        if (nodeName.includes("wheel") || nodeName.includes("tire")) {
-          node.material.color.set(wheelColor)
-          node.scale.set(wheelScale, wheelScale, wheelScale)
-          const offsetY = (wheelScale - 1) * -0.1
-          node.position.y = offsetY
+        // Update accent material (rims and chrome accents)
+        if (nodeName.includes("rim") || nodeName.includes("chrome")) {
+          const materials = Array.isArray(node.material) ? node.material : [node.material];
+          materials.forEach(material => {
+            if (material.isMaterial) { 
+              material.color.set(wheelColor);
+              material.needsUpdate = true;
+            }
+          });
         }
 
-        if (nodeName.includes("body") || nodeName.includes("chassis") || (nodeName.includes("car") && !nodeName.includes("wheel"))) {
-          node.material.color.set(bodyColor)
-          node.material.metalness = finish === "glossy" ? 0.8 : 0.1
-          node.material.roughness = finish === "glossy" ? 0.2 : 0.7
-          node.material.needsUpdate = true
+        // Apply wheel scale and position adjustments (applies to the whole wheel assembly)
+        if (nodeName.includes("wheel") || nodeName.includes("tire") || nodeName.includes("rim")) {
+             node.scale.set(wheelScale, wheelScale, wheelScale);
+             const offsetY = (wheelScale - 1) * -0.1;
+             node.position.y = offsetY;
+        }
+
+        // Update body color and finish
+        if (
+          nodeName.includes("body") ||
+          nodeName.includes("chassis") ||
+          (nodeName.includes("car") && 
+           !nodeName.includes("wheel") && 
+           !nodeName.includes("tire") && 
+           !nodeName.includes("rim") && 
+           !nodeName.includes("chrome")) // Ensure body color doesn't overwrite accent parts
+        ) {
+          const materials = Array.isArray(node.material) ? node.material : [node.material];
+          materials.forEach(material => {
+            if (material.isMaterial) {
+              material.color.set(bodyColor);
+              material.metalness = finish === "glossy" ? 0.8 : 0.1;
+              material.roughness = finish === "glossy" ? 0.2 : 0.7;
+              material.needsUpdate = true;
+            }
+          });
         }
       }
-    })
-  }, [bodyColor, wheelColor, finish, wheelScale, scene])
+    });
+  }, [bodyColor, wheelColor, finish, wheelScale, scene]);
 
   return (
     <primitive
@@ -150,7 +176,7 @@ function ModelViewer({ modelUrl, bodyColor, wheelColor, finish, wheelScale }: Mo
       position={[0, 0, 0]}
       rotation={[0, Math.PI / 4, 0]}
     />
-  )
+  );
 }
 
 interface CarCustomizerProps {
@@ -252,8 +278,8 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
   const userModels = models.filter(model => model.userId === user?.id);
 
   const handleZoomChange = (value: number[]) => {
-    setCarConfig((prev) => ({ ...prev, zoom: value[0] }))
-  }
+    setCarConfig((prev) => ({ ...prev, zoom: value[0] }));
+  };
 
   const handleModelChange = (newModelPath: string) => {
     const selectedModel = models.find((m: CarModel) => m.modelPath === newModelPath)
@@ -521,8 +547,44 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
             "Save Configuration"
           )}
         </Button>
+
+        <Button onClick={saveCar} className="w-full" size="lg">Save Car</Button>
+
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-semibold mb-2">Current Configuration</h3>
+            <div className="text-sm space-y-1 text-muted-foreground">
+              <p className="flex items-center gap-2">
+                Body Color:
+                <span
+                  className="inline-block w-5 h-5 rounded"
+                  style={{ backgroundColor: carConfig.bodyColor }}
+                ></span>
+                <span className="font-mono">{carConfig.bodyColor}</span> 
+              </p>
+              <p className="flex items-center gap-2">
+                Wheel Color:
+                <span
+                  className="inline-block w-5 h-5 rounded"
+                  style={{ backgroundColor: carConfig.wheelColor }}
+                ></span>
+                <span className="font-mono">{carConfig.wheelColor}</span>
+              </p>
+
+              <p>
+                Model: <span className="font-mono">{selectedModelName}</span>
+              </p>
+              <p>
+                Finish: <span className="font-mono">{carConfig.finish}</span>
+              </p>
+              <p>
+                Wheel Size: <span className="font-mono">{carConfig.wheelScale.toFixed(1)}x</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  )
+  );
 }
 

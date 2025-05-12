@@ -42,6 +42,145 @@ import {
 } from "@clerk/nextjs"
 import { Gallery } from "@/components/gallery"
 
+const carData = [
+  {
+    title: "Toyota Fortuner 2021",
+    src: "/assets/image/amjith-s-8G4hNKdu60M-unsplash.jpg",
+
+    description: "Customized Toyota Fortuner",
+    // link: "/car/audi",
+  },
+  {
+    title: "BMW 218i Gran Coupe 2021",
+    src: "/assets/image/anastase-maragos-Lrfuy93_hAc-unsplash.jpg",
+    description: "Customized BMW 218i Gran Coupe",
+  },
+  {
+    title: "Chevrolet Groove Premier 2023",
+    src: "/assets/image/karsten-winegeart-afDsNrec8gI-unsplash.jpg",
+    description: "Customized Chevrolet Groove Premier",
+  },
+  {
+    title: "Hyundai Creta 2023",
+    src: "/assets/image/tesla-fans-schweiz-7_OQMgoGzDw-unsplash.jpg",
+    description: "Customized Hyundai Creta",
+  },
+  {
+    title: "Audi A8 Custom 2018",
+    src: "/assets/image/stevosdisposable-6DnSGv4VZlo-unsplash.jpg",
+    description: "Customized Audi A8",
+  },
+  {
+    title: "Maruti Suzuki Swift Dzire 2022",
+    src: "/assets/image/live-car-p635p3cj7x0qkf44.jpg",
+    description: "Customized Maruti Suzuki Swift Dzire",
+  },
+  {
+    title: "Mahindra Scorpio-N 2022",
+    src: "/assets/image/garage.jpg",
+    description: "Customized Mahindra Scorpio",
+  },
+];
+
+
+const projects = [
+  {
+    title: "Interactive 3D Viewer",
+    description:
+      "Explore every angle of your car with our interactive 3D model viewer powered by Three.js.",
+
+  },
+  {
+    title: "Color Customization",
+    description: "Choose from a wide range of colors or create your own custom shade for the perfect look.",
+
+  },
+  {
+    title: "Accessory Customization"
+    , description: "Personalize wheels, headlights, and interior colors to match your style preferences.",
+
+  },
+  {
+    title: "Upload Your Models",
+    description: "Import your own 3D models created in Blender or other 3D software for customization.",
+
+  },
+  {
+    title: "Light & Dark Mode",
+    description: "Enjoy a comfortable viewing experience with support for both light and dark themes.",
+
+  },
+  {
+    title: "Save & Share",
+    description: "Save your customizations and share them with friends or download for future reference.",
+
+  },
+];
+
+
+const words = [
+  {
+    text: "Customize",
+  },
+  {
+    text: "Your",
+  },
+  {
+    text: "Car",
+  },
+  {
+    text: "With",
+  },
+  {
+    text: "Fun",
+    className: "text-blue-500 dark:text-blue-500",
+  },
+];
+
+
+
+
+
+
+function CarModel() {
+  const { scene } = useGLTF("/assets/3d/toyota_fortuner_2021.glb")
+  return (
+    <primitive
+      object={scene}
+      scale={[3, 3, 3]}
+      position={[0, -2, 0]}
+      rotation={[0, Math.PI / 4, 0]}
+    />
+  )
+}
+
+function FeatureCard({
+  icon: Icon,
+  title,
+  description,
+  delay,
+}: {
+  icon: any
+  title: string
+  description: string
+  delay: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+      className="bg-card border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+    >
+      <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+        <Icon className="text-primary w-6 h-6" />
+      </div>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
+    </motion.div>
+  )
+}
+
 export default function LandingPage() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -166,7 +305,7 @@ export default function LandingPage() {
   ];
 
   function CarModel() {
-    const { scene } = useGLTF("/assets/3d/fortuner.glb")
+    const { scene } = useGLTF("/assets/3d/toyota_fortuner_2021.glb")
     return (
       <primitive
         object={scene}
@@ -205,7 +344,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Header */}
       <header className="border-b z-50 relative">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -244,7 +383,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="py-20 md:py-32 relative bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black">
+      <section className="py-20 md:py-32 relative bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black ">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <div className="absolute inset-0 z-0 pointer-events-none">
@@ -279,7 +418,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-muted/30">
+      <section id="features" className="py-20 bg-muted/30 ">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-4">

@@ -58,31 +58,9 @@ export default function ColorPicker({
       {/* Body Color */}
       <div>
         <Label className="text-base">Body Color</Label>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid grid-cols-4 gap-1">
-            {Object.keys(bodyColorGroups).map((group) => (
-              <TabsTrigger key={group} value={group}>
-                {group}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {Object.entries(bodyColorGroups).map(([group, colors]) => (
-            <TabsContent key={group} value={group}>
-              <RadioGroup
-                value={bodyColor}
-                onValueChange={onBodyColorChange}
-                className="grid grid-cols-4 gap-2 mt-3"
-              >
-                {colors.map((color) => (
-                  <ColorOption
-                    key={color.value}
-                    color={color}
-                    selectedColor={bodyColor}
-                    onChange={onBodyColorChange}
-                  />
-                ))}
-              </RadioGroup>
-            </TabsContent>
+        <RadioGroup value={bodyColor} onValueChange={onBodyColorChange} className="grid grid-cols-4 gap-2 mt-2">
+          {colorOptions.map((color) => (
+            <ColorOption key={`body-${color.value}`} prefix="body" color={color} selectedColor={bodyColor} />
           ))}
         </Tabs>
         <CustomColorInput
@@ -98,20 +76,10 @@ export default function ColorPicker({
 
       {/* Wheel Color */}
       <div>
-        <Label className="text-base">Wheel Color</Label>
-        <RadioGroup
-          value={wheelColor}
-          onValueChange={onWheelColorChange}
-          className="grid grid-cols-4 gap-2 mt-2"
-        >
-          {wheelColorOptions.map((color) => (
-            <ColorOption
-              key={color.value}
-              color={color}
-              selectedColor={wheelColor}
-              onChange={onWheelColorChange}
-              rounded
-            />
+        <Label className="text-base">Accent Color</Label>
+        <RadioGroup value={wheelColor} onValueChange={onWheelColorChange} className="grid grid-cols-4 gap-2 mt-2">
+          {colorOptions.map((color) => (
+            <ColorOption key={`wheel-${color.value}`} prefix="wheel" color={color} selectedColor={wheelColor} />
           ))}
         </RadioGroup>
         <CustomColorInput
@@ -129,29 +97,25 @@ export default function ColorPicker({
 }
 
 const ColorOption = ({
+  prefix,
   color,
   selectedColor,
-  onChange,
-  rounded = true,
 }: {
+  prefix: string
   color: { value: string; label: string }
   selectedColor: string
-  onChange: (color: string) => void
-  rounded?: boolean
 }) => (
   <div className="flex flex-col items-center space-y-1">
     <RadioGroupItem
       value={color.value}
-      id={`color-${color.value}`}
+      id={`${prefix}-color-${color.value}`}
       checked={selectedColor === color.value}
-      onChange={() => onChange(color.value)}
       className="peer sr-only"
     />
     <Label
-      htmlFor={`color-${color.value}`}
-      className={`flex flex-col items-center justify-between border-2 p-2 cursor-pointer 
-        ${selectedColor === color.value ? "border-primary" : "border-muted"} hover:border-accent rounded-md`}
-      onClick={() => onChange(color.value)}
+      htmlFor={`${prefix}-color-${color.value}`}
+      className={`flex flex-col items-center justify-between rounded-md border-2 p-2 cursor-pointer 
+        ${selectedColor === color.value ? "border-primary" : "border-muted"} hover:border-accent`}
     >
       <div
         className={`border border-slate-300 w-8 h-8 ${rounded ? "rounded-full" : "rounded-md"}`}
