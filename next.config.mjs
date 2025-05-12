@@ -51,3 +51,5 @@ function mergeConfig(nextConfig, userConfig) {
 }
 
 export default nextConfig
+
+// Add a comment to force a new build
