@@ -44,6 +44,3 @@ next-env.d.ts
 *.hdr
 # clerk configuration (can include secrets)
 /.clerk/
-
-# devenv
-.devenv

@@ -72,7 +72,7 @@ export default function ModelUploader({ onModelUpload }: ModelUploaderProps) {
           setUploadStatus("success")
           // In a real app, the server would return the path to the uploaded model
           // For this demo, we'll just use the duck model
-            onModelUpload("/assets/3d/toyota_fortuner_2021.glb")
+            onModelUpload("/assets/3d/duck.glb")
           return 100
         }
         return prev + 5
@@ -88,8 +88,8 @@ export default function ModelUploader({ onModelUpload }: ModelUploaderProps) {
 
   // Sample models to choose from
   const sampleModels = [
-    { name: "Toyota Fortuner", path: "/assets/3d/toyota_fortuner_2021.glb" },
-    { name: "Default Car", path: "/assets/3d/toyota_fortuner_2021.glb" },
+    { name: "Duck", path: "/assets/3d/duck.glb" },
+    { name: "Default Car", path: "/assets/3d/duck.glb" }, // Using duck as placeholder
   ]
 
 

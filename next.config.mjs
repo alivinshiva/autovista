@@ -20,11 +20,6 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
-    outputFileTracing: {
-      exclude: {
-        'app/api/getGlbFiles/route': ['./public/assets/3d'],
-      },
-    },
   },
 }
 
@@ -51,5 +46,3 @@ function mergeConfig(nextConfig, userConfig) {
 }
 
 export default nextConfig
-
-// Add a comment to force a new build
