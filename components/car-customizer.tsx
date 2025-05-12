@@ -423,7 +423,7 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
                 <TabsTrigger value="color">Color</TabsTrigger>
                 <TabsTrigger value="accessories">Parts</TabsTrigger>
                 <TabsTrigger value="model">Model</TabsTrigger>
-                <TabsTrigger value="view">View</TabsTrigger>
+                <TabsTrigger value="view">Add Model</TabsTrigger>
               </TabsList>
 
               <TabsContent value="color" className="space-y-4">

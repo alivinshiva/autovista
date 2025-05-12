@@ -128,9 +128,9 @@ export default function GalleryPage() {
           <Link href="/customize" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
             Customize
           </Link>
-          <Link href="/upload" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
+          {/* <Link href="/upload" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
             Upload
-          </Link>
+          </Link> */}
         </div>
       </nav>
       {/* Gallery Section */}
