@@ -36,7 +36,7 @@ export function HoverEffect({ items, onView }: { items: GalleryItem[]; onView: (
             <CardItem translateZ="60" as="p" className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
               {item.description}
             </CardItem>
-            <CardItem translateZ="100" className="w-full mt-4 xl:min-w-[20rem] lg:min-w-[15rem] min-w-[25rem]">
+            <CardItem translateZ="100" className="w-full mt-4 xl:min-w-[20rem] lg:min-w-[15rem] sm:min-w-[25rem] min-w-[18rem]">
               <div className="relative h-60 w-full">
                 <Image
                   src={item.src}
