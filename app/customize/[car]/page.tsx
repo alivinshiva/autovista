@@ -58,11 +58,6 @@ export default function CustomizePage({ params }: CustomizePageProps) {
         <CarCustomizer slug={params.car} />
       </div>
 
-      <footer className="border-t p-4 mt-auto">
-        <div className="container mx-auto text-center text-sm text-muted-foreground">
-          <p>© 2025 AutoVista. All rights reserved.</p>
-        </div>
-      </footer>
     </main>
   )
 }
