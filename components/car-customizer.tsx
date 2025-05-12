@@ -208,6 +208,7 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
   const [models, setModels] = useState<CarModel[]>([])
   const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoadingConfig, setIsLoadingConfig] = useState(false)
 
   const [carConfig, setCarConfig] = useState<CarConfig>({
     bodyColor: "#ffffff",
@@ -285,6 +286,36 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
     fetchModels();
   }, [slug, user?.id]); // Re-fetch when user changes or slug changes
 
+  // Effect to load user's configuration when user or selected model changes
+  useEffect(() => {
+    const loadConfiguration = async () => {
+      if (!user || !carConfig.fileId) {
+        // Don't try to load if no user or no model selected
+        return;
+      }
+      
+      setIsLoadingConfig(true);
+      try {
+        const response = await fetch(`/api/get-config?userId=${user.id}&modelId=${carConfig.fileId}`);
+        const data = await response.json();
+
+        if (response.ok && data.config) {
+          // Update carConfig state with loaded data
+          setCarConfig(prev => ({
+            ...prev,
+            bodyColor: data.config.bodyColor,
+            wheelColor: data.config.wheelColor,
+            finish: data.config.finish as "glossy" | "matte",
+            wheelScale: parseFloat(data.config.wheelScale || '1'), // Parse string back to number
+          }));
+          toast.info("Loaded saved configuration.");
+        } // No error toast if no config is found, it's expected
+      } catch (error) {
+        console.error("Error loading configuration:", error);
+      } finally {
+        setIsLoadingConfig(false);
+      }
+    };
   const handleUploadComplete = () => {
     fetchModels(); // Refresh model list after upload
   };
@@ -293,6 +324,9 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
   const preUploadedModels = useMemo(() => models.filter(model => model.userId === "owner"), [models]);
   const userModels = useMemo(() => models.filter(model => model.userId === user?.id), [models, user?.id]);
 
+    // Debounce the config loading slightly if needed, or ensure dependencies are correct
+    loadConfiguration();
+  }, [user?.id, carConfig.fileId]); // Re-run when user or selected model changes
   const handleModelChange = (newModelId: string) => {
     const selected = models.find((m: CarModel) => m.fileId === newModelId) // Find by fileId
     if (selected) {
@@ -387,7 +421,7 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       <div className="lg:col-span-2 bg-muted/30 rounded-lg overflow-hidden shadow-sm h-[500px] lg:h-[700px] relative">
-        {loading && !carConfig.modelPath ? ( // Show loader only if truly loading initial model
+        {(loading || isLoadingConfig) && !carConfig.modelPath ? ( // Show loader while loading models or config
           <div className="w-full h-full flex items-center justify-center">
             <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
             <p className="ml-4 text-muted-foreground">Loading models...</p>
