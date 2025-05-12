@@ -116,26 +116,6 @@ export default function GalleryPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <nav className="w-full px-6 py-4 flex justify-between items-center shadow-md bg-white dark:bg-neutral-900 sticky top-0 z-50">
-        <div className="text-2xl font-bold text-red-500">
-          Auto<span className="text-black dark:text-white">Vista</span>
-        </div>
-        <div className="hidden md:flex gap-8">
-          <Link href="/" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
-            Home
-          </Link>
-          <Link href="/customize" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
-            Customize
-          </Link>
-          {/* <Link href="/upload" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
-            Upload
-          </Link> */}
-          <Link href="/about" className="text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition">
-            About
-          </Link>
-        </div>
-      </nav>
       {/* Gallery Section */}
       <section className="w-full px-0 py-10 lg:px-12">
         <div className="flex flex-col items-center justify-center mb-8">

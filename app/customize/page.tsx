@@ -67,36 +67,6 @@ function CustomizeRedirectPageInner() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <header className="border-b p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">AutoVista Customizer</h1>
-          <nav>
-            <ul className="flex space-x-4">
-              <li>
-                <Link href="/" className="hover:text-primary transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/gallery"
-                  className="hover:text-primary transition-colors"
-                >
-                  Gallery
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/about"
-                  className="hover:text-primary transition-colors"
-                >
-                  About
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
 
       <div className="flex-grow flex items-center justify-center">
         <div

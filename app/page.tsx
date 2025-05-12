@@ -207,45 +207,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b z-50 relative">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Car className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">AutoVista</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <nav className="hidden md:flex space-x-6">
-              <a href="#features" className="text-foreground/80 hover:text-foreground">Features</a>
-              <a href="#upload" className="text-foreground/80 hover:text-foreground">Model Gallery</a>
-              <a onClick={handleCustomizeClick} className="cursor-pointer text-foreground/80 hover:text-foreground">
-                Customize
-              </a>
-              <Link href="/about" className="text-foreground/80 hover:text-foreground">
-                About
-              </Link>
-            </nav>
-            {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
-            )}
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-          </div>
-
-        </div>
-      </header>
 
       {/* Hero */}
       <section className="py-20 md:py-32 relative bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black">
