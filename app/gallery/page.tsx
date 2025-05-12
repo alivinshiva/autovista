@@ -137,7 +137,7 @@ export default function GalleryPage() {
         </div>
       </nav>
       {/* Gallery Section */}
-      <section className="w-full px-4 py-10">
+      <section className="w-full px-0 py-10 lg:px-12">
         <div className="flex flex-col items-center justify-center mb-8">
           <TypewriterEffectSmooth
             words={[

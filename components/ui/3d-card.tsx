@@ -45,11 +45,28 @@ export const CardContainer = ({
     setIsMouseEntered(false);
     containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
   };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    containerRef.current.style.transform = `scale(1.03)`;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    containerRef.current.style.transform = `none`;
+  };
+
+  const handleTouchCancel = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    containerRef.current.style.transform = `none`;
+  };
+
+
   return (
     <MouseEnterContext.Provider value={[isMouseEntered, setIsMouseEntered]}>
       <div
         className={cn(
-          "py-20 flex items-center justify-center",
+          "py-4 flex items-center justify-center",
           containerClassName
         )}
         style={{
@@ -61,6 +78,9 @@ export const CardContainer = ({
           onMouseEnter={handleMouseEnter}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
           className={cn(
             "flex items-center justify-center relative transition-all duration-200 ease-linear",
             className
@@ -86,7 +106,7 @@ export const CardBody = ({
   return (
     <div
       className={cn(
-        "h-96 w-96 [transform-style:preserve-3d]  [&>*]:[transform-style:preserve-3d]",
+        "w-96 h-96 [transform-style:preserve-3d]  [&>*]:[transform-style:preserve-3d]",
         className
       )}
     >

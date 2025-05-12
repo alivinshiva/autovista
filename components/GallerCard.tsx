@@ -26,17 +26,17 @@ export function HoverEffect({ items, onView }: { items: GalleryItem[]; onView: (
   const router = useRouter();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 gap-y-6 max-w-2xl mx-auto lg:grid-cols-3 lg:gap-x-8 lg:gap-y-8 lg:px-0 lg:max-w-none">
       {items.map((item, idx) => (
         <CardContainer key={item.id ?? idx} className="inter-var">
-          <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
+          <CardBody className="min-w-md bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-full h-auto rounded-xl p-4 border">
             <CardItem translateZ="50" className="text-xl font-bold text-neutral-600 dark:text-white">
               {item.title}
             </CardItem>
             <CardItem translateZ="60" as="p" className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
               {item.description}
             </CardItem>
-            <CardItem translateZ="100" className="w-full mt-4">
+            <CardItem translateZ="100" className="w-full mt-4 xl:min-w-[20rem] lg:min-w-[15rem] min-w-[25rem]">
               <div className="relative h-60 w-full">
                 <Image
                   src={item.src}
@@ -48,7 +48,7 @@ export function HoverEffect({ items, onView }: { items: GalleryItem[]; onView: (
               </div>
             </CardItem>
 
-            <div className="flex justify-between items-center mt-6">
+            <div className="flex justify-between items-center mt-6 gap-4">
               <CardItem
                 translateZ={20}
                 as="button"
