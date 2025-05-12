@@ -221,6 +221,9 @@ export default function LandingPage() {
               <a onClick={handleCustomizeClick} className="cursor-pointer text-foreground/80 hover:text-foreground">
                 Customize
               </a>
+              <Link href="/about" className="text-foreground/80 hover:text-foreground">
+                About
+              </Link>
             </nav>
             {mounted && (
               <Button
