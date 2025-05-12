@@ -20,6 +20,11 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    outputFileTracing: {
+      exclude: {
+        'app/api/getGlbFiles/route': ['./public/assets/3d'],
+      },
+    },
   },
 }
 
