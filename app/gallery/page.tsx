@@ -161,7 +161,7 @@ export default function GalleryPage() {
 
       {/* View Dialog */}
       <Dialog open={!!selectedModel} onOpenChange={() => setSelectedModel(null)}>
-        <DialogContent className="max-w-4xl h-[80vh]">
+        <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogTitle className="text-2xl font-bold mb-2">
             {selectedModel?.title}
           </DialogTitle>
