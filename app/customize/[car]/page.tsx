@@ -1,4 +1,4 @@
-c// import CarCustomizer from "@/components/car-customizer"
+// import CarCustomizer from "@/components/car-customizer"
 
 // export default function CustomizePage() {
 //   return (
@@ -66,8 +66,6 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 <Link href="/gallery" className="hover:text-primary transition-colors">
                   Gallery
                 </Link>
-:start_line:69
--------
               </li>
               <li>
                 <Link href="/about" className="hover:text-primary transition-colors">
