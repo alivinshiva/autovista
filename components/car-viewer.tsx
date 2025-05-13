@@ -60,6 +60,7 @@ export default function CarViewer(props: CarViewerProps) {
         enableZoom={true}
         enablePan={true}
         enableRotate={true}
+        autoRotate={true} // Add auto-rotation
         zoomSpeed={0.6}
         panSpeed={0.5}
         rotateSpeed={0.4}
