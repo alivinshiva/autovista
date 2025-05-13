@@ -222,7 +222,7 @@ export default function LandingPage() {
                 <Environment preset="city" />
               </Canvas>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight drop-shadow-lg text-white">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight drop-shadow-lg text-primary dark:text-white">
               Customize Your Dream Car in 3D
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-lg drop-shadow-md">
