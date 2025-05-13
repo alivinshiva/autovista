@@ -181,11 +181,11 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
 
   const [isSaving, setIsSaving] = useState(false)
 
-  const fetchModels = async () => {
+  const fetchModels = async (): Promise<CarModel[]> => {
     try {
       setLoading(true);
       const carModels = await getAllCarModels();
-      
+
       const typedModels = carModels.map(model => ({
         ...model,
         modelName: model.modelName || '',
@@ -203,45 +203,112 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
       const filteredModels = typedModels.filter(model => {
         return model.userId === "owner" || model.userId === user?.id;
       });
-      
+
       setModels(filteredModels);
-      
-      if (filteredModels.length > 0) {
-        if (slug) {
-          const modelBySlug = filteredModels.find(m => m.slug === slug);
-          if (modelBySlug) {
-            setSelectedModel(modelBySlug.fileId);
-            setCarConfig((prev) => ({
-              ...prev,
-              modelPath: modelBySlug.modelPath,
-              modelName: modelBySlug.modelName,
-              imageUrl: modelBySlug.imageUrl,
-              fileId: modelBySlug.fileId,
-            }));
-            return;
-          }
-        }
-        const firstModel = filteredModels[0];
-        setSelectedModel(firstModel.fileId);
-        setCarConfig((prev) => ({
-          ...prev,
-          modelPath: firstModel.modelPath,
-          modelName: firstModel.modelName,
-          imageUrl: firstModel.imageUrl,
-          fileId: firstModel.fileId,
-        }));
-      }
+
+      // Return the filtered models
+      return filteredModels;
+
     } catch (error) {
       console.error('Error fetching car models:', error);
       toast.error('Failed to load car models');
+      return []; // Return empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchModels();
-  }, [slug, user?.id]); // Re-fetch when user changes
+    const loadConfigFromUrl = (models: CarModel[]) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const configParam = urlParams.get('config');
+
+      if (configParam) {
+        try {
+          const decodedConfig = atob(configParam);
+          const loadedConfig = JSON.parse(decodedConfig);
+
+          // Find the model based on the modelPath in the loaded config
+          const modelToLoad = models.find(m => m.modelPath === loadedConfig.modelPath);
+
+          if (modelToLoad) {
+            setCarConfig(prev => ({
+              ...prev,
+              ...loadedConfig, // Apply loaded config values
+              modelPath: modelToLoad.modelPath, // Ensure modelPath is from the found model
+              modelName: modelToLoad.modelName,
+              imageUrl: modelToLoad.imageUrl,
+              fileId: modelToLoad.fileId,
+            }));
+            setSelectedModel(modelToLoad.fileId); // Update selected model state
+            toast.success("Configuration loaded from URL!");
+          } else {
+            toast.error("Could not find the car model specified in the shared configuration.");
+            // Fallback to default loading if model not found
+            if (models.length > 0) {
+              const firstModel = models[0];
+              setSelectedModel(firstModel.fileId);
+              setCarConfig((prev) => ({
+                ...prev,
+                modelPath: firstModel.modelPath,
+                modelName: firstModel.modelName,
+                imageUrl: firstModel.imageUrl,
+                fileId: firstModel.fileId,
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Error loading configuration from URL:", error);
+          toast.error("Failed to load configuration from URL.");
+          // Fallback to default loading on error
+          if (models.length > 0) {
+            const firstModel = models[0];
+            setSelectedModel(firstModel.fileId);
+            setCarConfig((prev) => ({
+              ...prev,
+              modelPath: firstModel.modelPath,
+              modelName: firstModel.modelName,
+              imageUrl: firstModel.imageUrl,
+              fileId: firstModel.fileId,
+            }));
+          }
+        }
+      } else {
+        // Default loading based on slug if no config in URL
+        if (models.length > 0) {
+          if (slug) {
+            const modelBySlug = models.find(m => m.slug === slug);
+            if (modelBySlug) {
+              setSelectedModel(modelBySlug.fileId);
+              setCarConfig((prev) => ({
+                ...prev,
+                modelPath: modelBySlug.modelPath,
+                modelName: modelBySlug.modelName,
+                imageUrl: modelBySlug.imageUrl,
+                fileId: modelBySlug.fileId,
+              }));
+              return;
+            }
+          }
+          const firstModel = models[0];
+          setSelectedModel(firstModel.fileId);
+          setCarConfig((prev) => ({
+            ...prev,
+            modelPath: firstModel.modelPath,
+            modelName: firstModel.modelName,
+            imageUrl: firstModel.imageUrl,
+            fileId: firstModel.fileId,
+          }));
+        }
+      }
+    };
+
+    fetchModels().then(models => {
+      // After models are fetched, attempt to load config from URL
+      loadConfigFromUrl(models);
+    });
+
+  }, [slug, user?.id]); // Re-fetch when slug or user changes
 
   const handleUploadComplete = () => {
     fetchModels();
@@ -326,6 +393,32 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
     }
   };
 
+  const generateShareUrl = () => {
+    const configToShare = {
+      modelPath: carConfig.modelPath,
+      bodyColor: carConfig.bodyColor,
+      wheelColor: carConfig.wheelColor,
+      wheelScale: carConfig.wheelScale,
+      finish: carConfig.finish,
+    };
+    const jsonConfig = JSON.stringify(configToShare);
+    const encodedConfig = btoa(jsonConfig);
+    const shareUrl = `${window.location.origin}/customize/${slug}?config=${encodedConfig}`;
+    return shareUrl;
+  };
+
+  const handleShare = () => {
+    const shareUrl = generateShareUrl();
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        toast.success("Share link copied to clipboard!");
+      })
+      .catch((err) => {
+        console.error("Failed to copy share link:", err);
+        toast.error("Failed to copy share link.");
+      });
+  };
+
   const saveConfiguration = async () => {
     setIsSaving(true);
     try {
@@ -349,7 +442,7 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
       });
 
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || "Failed to save configuration");
       }
@@ -511,6 +604,9 @@ export default function CarCustomizer({ slug }: CarCustomizerProps) {
           </CardContent>
         </Card>
 
+        <Button className="w-full mb-2" size="lg" onClick={handleShare}>
+          Share Configuration
+        </Button>
         <Button className="w-full" size="lg" onClick={saveConfiguration} disabled={isSaving}>
           {isSaving ? (
             <>
